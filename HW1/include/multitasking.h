@@ -33,6 +33,17 @@ namespace myos
         common::uint32_t esp;
         common::uint32_t ss;        
     } __attribute__((packed));
+
+    enum TaskState {
+        RUNNING,
+        BLOCKED,
+        READY,
+        TERMINATED
+    };
+
+    struct TaskStateInfo {
+        TaskState state;
+    };
     
     
     class Task
@@ -41,9 +52,17 @@ namespace myos
     private:
         common::uint8_t stack[4096]; // 4 KiB
         CPUState* cpustate;
+        struct TaskStateInfo stateInfo;
+        int pid;
+        bool forked;
     public:
         Task(GlobalDescriptorTable *gdt, void entrypoint());
+        Task(Task *parent);
         ~Task();
+        int getPid();
+        void setPid(int pid);
+        bool isForked();
+        void setForked(bool forked);
     };
     
     
@@ -53,10 +72,14 @@ namespace myos
         Task* tasks[256];
         int numTasks;
         int currentTask;
+        int nextPid;
     public:
         TaskManager();
         ~TaskManager();
+        void printAll();
         bool AddTask(Task* task);
+        common::uint32_t Fork();
+        int WaitPID();
         CPUState* Schedule(CPUState* cpustate);
     };
     

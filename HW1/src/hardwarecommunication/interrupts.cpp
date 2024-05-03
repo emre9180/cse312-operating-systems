@@ -176,6 +176,10 @@ uint32_t InterruptManager::HandleInterrupt(uint8_t interrupt, uint32_t esp)
     return esp;
 }
 
+TaskManager* InterruptManager::getTaskManager()
+{
+    return taskManager;
+}
 
 uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
 {

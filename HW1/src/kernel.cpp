@@ -195,6 +195,28 @@ public:
     }
 };
 
+// common::uint32_t fork() {
+//     common::uint32_t result;
+//     // asm volatile("int $0x80" : "=a" (result) : "a" (1));  // System call number 1 for fork()
+//     // asm("int $0x80" : : "a" (3));
+//     asm("int $0x80" : : "a" (1));
+//     return result;
+// }
+
+
+common::uint32_t fork() {
+    common::uint32_t result = 55;
+    asm volatile("int $0x80" : "=a" (result) : "a" (1));  // System call number 1 for fork()
+    // asm("int $0x80" : : "a" (3));
+    // asm("int $0x80" : : "a" (1));
+    return result;
+}
+
+
+void execve(){
+    asm("int $0x80" : : "a" (3));
+}
+
 
 void sysprintf(char* str)
 {
@@ -213,6 +235,18 @@ void taskB()
         sysprintf("B");
 }
 
+void taskC(){
+      
+    uint8_t result = fork();
+    printfHex(result);
+    for(int i = 0; i < 10; i++)
+        printfHex(i);
+    // printfHex(result);
+    while(1);
+ 
+        
+}
+    
 
 
 
@@ -262,6 +296,9 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     taskManager.AddTask(&task2);
     */
     
+   Task task1(&gdt, taskC);
+    taskManager.AddTask(&task1);
+
     InterruptManager interrupts(0x20, &gdt, &taskManager);
     SyscallHandler syscalls(&interrupts, 0x80);
     

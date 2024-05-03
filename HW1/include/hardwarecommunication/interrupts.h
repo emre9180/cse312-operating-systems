@@ -113,6 +113,7 @@ namespace myos
             public:
                 InterruptManager(myos::common::uint16_t hardwareInterruptOffset, myos::GlobalDescriptorTable* globalDescriptorTable, myos::TaskManager* taskManager);
                 ~InterruptManager();
+                TaskManager* getTaskManager();
                 myos::common::uint16_t HardwareInterruptOffset();
                 void Activate();
                 void Deactivate();
