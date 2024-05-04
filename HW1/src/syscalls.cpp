@@ -22,7 +22,7 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp) {
 
     switch(cpu->eax) {
         case 1: // FORK
-            cpu->eax = this->interruptManager->getTaskManager()->Fork();  // Capture fork result
+            cpu->eax = this->interruptManager->getTaskManager()->Fork(cpu);  // Capture fork result
             // this->interruptManager->getTaskManager()->Fork(); 
             break;
         case 2: // FORK

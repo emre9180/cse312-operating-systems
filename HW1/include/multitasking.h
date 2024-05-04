@@ -50,14 +50,16 @@ namespace myos
     {
     friend class TaskManager;
     private:
-        common::uint8_t stack[4096]; // 4 KiB
-        CPUState* cpustate;
+        
+        
         struct TaskStateInfo stateInfo;
         int pid;
         bool forked;
     public:
+    common::uint8_t stack[4096]; // 4 KiB
         Task(GlobalDescriptorTable *gdt, void entrypoint());
         Task(Task *parent);
+        CPUState* cpustate;
         ~Task();
         int getPid();
         void setPid(int pid);
@@ -78,7 +80,7 @@ namespace myos
         ~TaskManager();
         void printAll();
         bool AddTask(Task* task);
-        common::uint32_t Fork();
+        common::uint32_t Fork(CPUState* cpu);
         int WaitPID();
         CPUState* Schedule(CPUState* cpustate);
     };

@@ -236,11 +236,20 @@ void taskB()
 }
 
 void taskC(){
-      
-    uint8_t result = fork();
-    printfHex(result);
+   
     for(int i = 0; i < 10; i++)
-        printfHex(i);
+    {
+        if(i==5)
+            uint8_t result = fork();
+        printfHex(i);  
+    }
+        
+            
+    
+    
+    //     printfHex(i);
+    
+        
     // printfHex(result);
     while(1);
  

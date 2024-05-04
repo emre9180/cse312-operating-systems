@@ -40,6 +40,10 @@ Task::Task(Task *parent)
     cpustate = (CPUState*)(stack + 4096 - sizeof(CPUState));
 
     // copy stack
+    for(int j = 0; j < 4096; j++)
+    {
+        stack[j] = parent->stack[j];
+    }
     
     
     cpustate -> eax = parent->cpustate->eax;
@@ -65,6 +69,13 @@ Task::Task(Task *parent)
     cpustate -> cs = parent->cpustate->cs;
     // cpustate -> ss = ;
     cpustate -> eflags = parent->cpustate->eflags;
+
+    //copy stack
+    // for(uint32_t i = 0; i < 4096; i++)
+    // {
+    //     stack[i] = parent->stack[i];
+    // }
+
     forked = false;
 }
 
@@ -113,17 +124,28 @@ void TaskManager::printAll()
     }
 }
 
+void copyTask(Task* parent, Task* child)
+{
+    *(child->cpustate) = *(parent->cpustate);
+    for(int j = 0; j < 4096; j++)
+    {
+        child->stack[j] = parent->stack[j];
+    }
+}
 
-common::uint32_t TaskManager::Fork() {
+
+common::uint32_t TaskManager::Fork(CPUState* cpu) {
     // Assuming `currentTask` points to the currently executing task
-    this->printAll();
-    Task child = Task(this->tasks[currentTask]);
+    // this->printAll();
+    // Task child = Task(this->tasks[currentTask]);
+    Task *child = tasks[numTasks];
+    copyTask(this->tasks[currentTask], child);
+    // this->AddTask(child);
     printfHex(31);
-    AddTask(&child);  // Add new task and get its identifier
+    AddTask(child);  // Add new task and get its identifier
     return this->tasks[currentTask]->getPid();  // Return parent's PID
 }
 
-        
 TaskManager::TaskManager()
 {
     numTasks = 0;
@@ -136,13 +158,15 @@ TaskManager::~TaskManager()
 }
 
 bool TaskManager::AddTask(Task* task)
-{
+{   
+    
     if(numTasks >= 256)
         return false;
     tasks[numTasks] = task;
     tasks[numTasks]->setPid(nextPid);
     nextPid = nextPid + 1;
     numTasks = numTasks + 1;
+    // while(numTasks>1) printfHex(numTasks);
     return true;
 }
 
