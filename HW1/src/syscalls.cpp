@@ -19,7 +19,7 @@ void printf(char*);
 
 uint32_t SyscallHandler::HandleInterrupt(uint32_t esp) {
     CPUState* cpu = (CPUState*)esp;
-
+    printf("ASD");
     switch(cpu->eax) {
         case 1: // FORK
             cpu->eax = this->interruptManager->getTaskManager()->Fork(cpu);  // Capture fork result
