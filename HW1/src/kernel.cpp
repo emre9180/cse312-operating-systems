@@ -239,6 +239,7 @@ void taskB()
 
 void taskC(){
    uint8_t i = 5;
+<<<<<<< HEAD
    common::int32_t pid;
    pid = fork();
    if (pid == 0) {
@@ -254,6 +255,23 @@ void taskC(){
    while(1);
 }
 
+=======
+   common::uint8_t pid;
+    for(i = 0; i < 10; i++)
+    {
+        if(i==5) 
+        {
+             pid = fork();
+        }
+           
+        printfHex(i);
+        
+}
+     
+    while(1);    
+}
+    
+>>>>>>> e08f8d47e65e45e725d5fefbf9f0c3cec4d50e9f
 
 
 
