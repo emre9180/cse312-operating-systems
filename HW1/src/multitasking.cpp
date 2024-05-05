@@ -34,7 +34,6 @@ Task::Task(GlobalDescriptorTable *gdt, void entrypoint())
     cpustate -> eflags = 0x202;
     forked = false;
     this->gdt = gdt;
-    this->gdt = gdt;
 }
 
 Task::Task(Task *parent)
@@ -154,34 +153,28 @@ Task::Task()
 {
 }
 
-void TaskManager::StartNewTask(Task* child, GlobalDescriptorTable *gdt, void entrypoint())
-{
+void TaskManager::StartNewTask(Task* child, GlobalDescriptorTable* gdt, void(*entrypoint)()) {
     child->cpustate = (CPUState*)(child->stack + 4096 - sizeof(CPUState));
-    
-    child->cpustate -> eax = 0;
-    child->cpustate -> ebx = 0;
-    child->cpustate -> ecx = 0;
-    child->cpustate -> edx = 0;
 
-    child->cpustate -> esi = 0;
-    child->cpustate -> edi = 0;
-    child->cpustate -> ebp = 0;
+    child->cpustate->eax = 0;
+    child->cpustate->ebx = 0;
+    child->cpustate->ecx = 0;
+    child->cpustate->edx = 0;
+    child->cpustate->esi = 0;
+    child->cpustate->edi = 0;
+    child->cpustate->ebp = 0;
     
-    /*
-    child->cpustate -> gs = 0;
-    child->cpustate -> fs = 0;
-    child->cpustate -> es = 0;
-    child->cpustate -> ds = 0;
-    */
-    
-    // child->cpustate -> error = 0;    
-   
-    // child->cpustate -> esp = ;
-    child->cpustate -> eip = (uint32_t)entrypoint;
-    child->cpustate -> cs = gdt->CodeSegmentSelector();
-    // child->cpustate -> ss = ;
-    child->cpustate -> eflags = 0x202;
+    child->cpustate->eip = (uint32_t)entrypoint;
+    child->cpustate->cs = gdt->CodeSegmentSelector();
+    // child->cpustate->ss = gdt->StackSegmentSelector();  // Make sure this is set if needed
+    // child->cpustate->ds = gdt->DataSegmentSelector();
+    // child->cpustate->es = gdt->DataSegmentSelector();
+    // child->cpustate->fs = 0;  // Typically not used, set to zero
+    // child->cpustate->gs = 0;  // Typically not used, set to zero
+    child->cpustate->eflags = 0x202;  // Set standard flags, ensure IF is set to enable interrupts
+
     child->gdt = gdt;
+    child->forked = false;
 }
 
 void copyTask(Task* parent, Task* child, CPUState* cpu) {
@@ -210,14 +203,26 @@ void copyTask(Task* parent, Task* child, CPUState* cpu) {
     child->cpustate->eax = 0;
 }
 
+
+
+
 common::uint32_t TaskManager::Fork(CPUState* cpu) {
-    Task* child = tasks[numTasks];
-    StartNewTask(child, this->tasks[currentTask]->gdt, taskA); // Initialize the new task
-    copyTask(this->tasks[currentTask], child, cpu);  // Copy parent to child
-    child->setPid(nextPid++);  // Set unique PID
-    AddTask(child);  // Add the new task
+    if (numTasks >= 256)
+        return -1;  // Return an error if too many tasks
+
+    Task* parent = tasks[currentTask];
+    Task* child = tasks[numTasks];  // Assuming you have a copy constructor
+    StartNewTask(child, parent->gdt, (void (*)())parent->cpustate->eip);
+    copyTask(parent, child, cpu);
+
+    child->cpustate->eax = 0;  // Child sees fork() return 0
+    parent->cpustate->eax = child->getPid();  // Parent sees child's PID
+
+    AddTask(child);
     printAll();
+    return parent->cpustate->eax;
 }
+
 
 
 TaskManager::TaskManager()
@@ -230,32 +235,23 @@ TaskManager::TaskManager()
 TaskManager::~TaskManager()
 {
 }
-
-bool TaskManager::AddTask(Task* task)
-{   
-    if(numTasks >= 256)
+bool TaskManager::AddTask(Task* task) {
+    if (numTasks >= 256)
         return false;
     
     tasks[numTasks] = task;
-    // tasks[numTasks]->setPid(nextPid);
-    // nextPid = nextPid + 1;
-    numTasks = numTasks + 1;
-    // while(numTasks>1) printfHex(numTasks);
-    // this->printAll();
+    task->setPid(nextPid);  // Set unique PID
+    nextPid++;  // Increment PID for the next task
+    numTasks++;
     return true;
 }
 
 
-// 
-CPUState* TaskManager::Schedule(CPUState* cpustate)
-{
-    if(numTasks <= 0)
-        return cpustate;
-    
-    if(currentTask >= 0)
-        tasks[currentTask]->cpustate = cpustate;
-    
-    if(++currentTask >= numTasks)
-        currentTask %= numTasks;
-    return tasks[currentTask]->cpustate;
+
+CPUState* TaskManager::Schedule(CPUState* cpustate) {
+    if (numTasks <= 0) return cpustate;
+
+    tasks[currentTask]->cpustate = cpustate;  // Save current state
+    currentTask = (currentTask + 1) % numTasks;  // Move to next task
+    return tasks[currentTask]->cpustate;  // Load next task state
 }
