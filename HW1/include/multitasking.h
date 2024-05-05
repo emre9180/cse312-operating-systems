@@ -53,33 +53,38 @@ namespace myos
         
         
         struct TaskStateInfo stateInfo;
-        int pid;
+        common::int8_t pid;
         bool forked;
     public:
     common::uint8_t stack[4096]; // 4 KiB
         Task(GlobalDescriptorTable *gdt, void entrypoint());
         Task(Task *parent);
+        Task();
         CPUState* cpustate;
         ~Task();
-        int getPid();
-        void setPid(int pid);
+        common::uint8_t getPid();
+        void setPid(common::uint8_t pid);
+        bool getForked();
         bool isForked();
         void setForked(bool forked);
+        GlobalDescriptorTable *gdt;
     };
     
     
     class TaskManager
     {
     private:
-        Task* tasks[256];
+        
         int numTasks;
         int currentTask;
-        int nextPid;
+        common::uint8_t nextPid;
     public:
         TaskManager();
         ~TaskManager();
+        Task* tasks[256];
         void printAll();
         bool AddTask(Task* task);
+        void StartNewTask(Task* child, GlobalDescriptorTable *gdt, void entrypoint());
         common::uint32_t Fork(CPUState* cpu);
         int WaitPID();
         CPUState* Schedule(CPUState* cpustate);

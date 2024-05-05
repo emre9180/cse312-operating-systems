@@ -118,6 +118,7 @@ InterruptManager::InterruptManager(uint16_t hardwareInterruptOffset, GlobalDescr
     SetInterruptDescriptorTableEntry(hardwareInterruptOffset + 0x0F, CodeSegment, &HandleInterruptRequest0x0F, 0, IDT_INTERRUPT_GATE);
 
     SetInterruptDescriptorTableEntry(                          0x80, CodeSegment, &HandleInterruptRequest0x80, 0, IDT_INTERRUPT_GATE);
+    SetInterruptDescriptorTableEntry(hardwareInterruptOffset + 0x20, CodeSegment, &HandleInterruptRequest0x20, 0, IDT_INTERRUPT_GATE);
 
     programmableInterruptControllerMasterCommandPort.Write(0x11);
     programmableInterruptControllerSlaveCommandPort.Write(0x11);
@@ -189,6 +190,7 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
     }
     else if(interrupt != hardwareInterruptOffset)
     {
+        // printfHex(hardwareInterruptOffset);
         printf("UNHANDLED INTERRUPT 0x");
         printfHex(interrupt);
     }

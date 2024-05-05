@@ -77,6 +77,7 @@ namespace myos
                 static void HandleInterruptRequest0x0D();
                 static void HandleInterruptRequest0x0E();
                 static void HandleInterruptRequest0x0F();
+                static void HandleInterruptRequest0x20();
                 static void HandleInterruptRequest0x31();
 
                 static void HandleInterruptRequest0x80();

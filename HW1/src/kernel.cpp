@@ -205,10 +205,12 @@ public:
 
 
 common::uint32_t fork() {
-    common::uint32_t result = 55;
-    asm volatile("int $0x80" : "=a" (result) : "a" (1));  // System call number 1 for fork()
-    // asm("int $0x80" : : "a" (3));
-    // asm("int $0x80" : : "a" (1));
+    common::uint32_t result;
+    asm volatile("int $0x80"
+                 : "=a" (result)  // Capture the result from EAX directly after the interrupt
+                 : "a" (1)        // System call number for fork
+                 : "cc", "memory" // Tell compiler that flags and memory might be altered
+    );
     return result;
 }
 
@@ -226,7 +228,7 @@ void sysprintf(char* str)
 void taskA()
 {
     while(true)
-        sysprintf("A");
+        printf("A");
 }
 
 void taskB()
@@ -236,24 +238,20 @@ void taskB()
 }
 
 void taskC(){
-   
-    for(int i = 0; i < 10; i++)
+   uint8_t i = 5;
+   common::uint8_t pid;
+    for(i = 0; i < 10; i++)
     {
-        if(i==5)
-            uint8_t result = fork();
-        printfHex(i);  
-    }
+        if(i==5) 
+        {
+             pid = fork();
+        }
+           
+        printfHex(i);
         
-            
-    
-    
-    //     printfHex(i);
-    
-        
-    // printfHex(result);
-    while(1);
- 
-        
+}
+     
+    while(1);    
 }
     
 
@@ -304,9 +302,15 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     taskManager.AddTask(&task1);
     taskManager.AddTask(&task2);
     */
+
+//    Task task2(&gdt, taskB);
+//     taskManager.AddTask(&task2);
     
    Task task1(&gdt, taskC);
     taskManager.AddTask(&task1);
+
+
+    
 
     InterruptManager interrupts(0x20, &gdt, &taskManager);
     SyscallHandler syscalls(&interrupts, 0x80);
