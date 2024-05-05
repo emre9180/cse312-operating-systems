@@ -239,21 +239,21 @@ void taskB()
 
 void taskC(){
    uint8_t i = 5;
-   common::uint8_t pid;
-    for(i = 0; i < 10; i++)
-    {
-        if(i==5) 
-        {
-             pid = fork();
-        }
-           
-        printfHex(i);
-        
+   common::int32_t pid;
+   pid = fork();
+   if (pid == 0) {
+       // Child process
+       printf("Child Task Started\n");
+   } else {
+       // Parent process
+       printf("Parent Task, Child PID\n");
+   }
+   for(i = 0; i < 10; i++) {
+       printfHex(i);
+   }
+   while(1);
 }
-     
-    while(1);    
-}
-    
+
 
 
 
