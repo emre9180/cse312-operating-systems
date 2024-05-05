@@ -195,7 +195,7 @@ void copyTask(Task* parent, Task* child, CPUState* cpu) {
     *(child->cpustate) = *(cpu);
 
     // Adjust the stack pointer (esp) to the new task's stack context
-    child->cpustate->esp = (common::uint32_t)(child->stack + 4096 - sizeof(CPUState));
+    child->cpustate->esp = cpu->esp;
     child->cpustate->eip = cpu->eip + 2;  // Set the child's instruction pointer to the same as the parent's
 
     // Make any necessary adjustments to eip, or other registers if required
@@ -223,6 +223,41 @@ common::uint32_t TaskManager::Fork(CPUState* cpu) {
     return parent->cpustate->eax;
 }
 
+// common::uint32_t TaskManager::Fork(CPUState* cpu) {
+//     if (numTasks >= 256) {
+//         return -1; // Maximum number of tasks reached, cannot create more
+//     }
+
+//     Task* parent = tasks[currentTask]; // Current running task
+//     Task* child = tasks[numTasks]; // Create a new task as a copy of the parent
+//     StartNewTask(child, parent->gdt, (void (*)())cpu->eip); // Initialize child task
+
+//     // Manually copy the stack from the parent to the child, excluding the CPUState area
+//     for (int i = 0; i < 4096 - sizeof(CPUState); i++) {
+//         child->stack[i] = parent->stack[i];
+//     }
+
+//     // Now set up the child's CPUState from the current interrupt state
+//     *(child->cpustate) = *cpu; // Copy CPUState structure contents
+
+//     // Adjust stack pointers within the child's stack context
+//     child->cpustate->eflags |= 0x200; // Ensure IF is set to enable interrupts
+
+//     // Set the child's instruction pointer to continue from where it left off
+//     child->cpustate->eip = cpu->eip + 2; // Skip the 'int $0x80' instruction
+
+//     // Fork should return 0 in the child
+//     child->cpustate->eax = 0;
+
+//     // Add the new task to the list of managed tasks
+//     child->setPid(nextPid++); // Assign a new PID to the child
+//     AddTask(child);
+//     printAll();
+//     // Parent gets the PID of the newly created child
+//     parent->cpustate->eax = child->getPid();
+
+//     return parent->cpustate->eax; // Return child's PID to parent
+// }
 
 
 TaskManager::TaskManager()
@@ -250,7 +285,7 @@ bool TaskManager::AddTask(Task* task) {
 
 CPUState* TaskManager::Schedule(CPUState* cpustate) {
     if (numTasks <= 0) return cpustate;
-
+    printf("Scheduling task ");
     tasks[currentTask]->cpustate = cpustate;  // Save current state
     currentTask = (currentTask + 1) % numTasks;  // Move to next task
     return tasks[currentTask]->cpustate;  // Load next task state
