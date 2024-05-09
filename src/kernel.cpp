@@ -225,19 +225,20 @@ void taskB()
 #define FORK(result) asm volatile("int $0x80" : "=a" (result) : "a" (1));  // System call number 1 for fork()
 
 void taskC(){
-    uint32_t result = 0;  // Define result variable outside the loop
-    uint32_t i = 0;
+    uint32_t result = 3;  // Define result variable outside the loop
+    uint8_t i = 3;
+    uint16_t garb = 0x1334;
     for(i = 0; i < 10; i++)
     {
         if(i == 5) {
             FORK(result);  // Use the macro here
             if (result == 0) {  // Child process
                 printf("Child Process Started\n");
-            } else {  // Parent process
+            } else  {  // Parent process
                 printf("Parent Continues\n");
             }
         }
-        printfHex32(i);
+        printfHex(i);
     }
 
     // // Fork and get pid
@@ -246,11 +247,13 @@ void taskC(){
 
     // if(result == 0)
     // {
-    //     printf("child");
+    //     printf("child ");
+    //     printfHex16(garb);
     // }
     // else
     // {
-    //     printf("parent");
+    //     printf("parent ");
+    //     printfHex16(garb);
     // }
     
     printf("slm");

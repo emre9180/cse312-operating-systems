@@ -128,36 +128,64 @@ common::uint32_t TaskManager::getEsp()
 }
 void copyTask(Task* parent, Task* child, CPUState* cpu, GlobalDescriptorTable *gdt, CPUState* parentCpu) {
     // Copy stack
-    for (int j = 0; j < 4096; j++) {
+
+    child->cpustate = (CPUState*)(child->stack + 4096 - sizeof(CPUState));
+
+    for (int j = 0; j < sizeof(child->stack); j++) {
         child->stack[j] = parent->stack[j];
     }
 
-    // Set up child's CPU state at the end of the new stack
-    child->cpustate = (CPUState*)(child->stack + 4096 - sizeof(CPUState));
+    common::int32_t offset_cpu =   common::int32_t(parent->stack) - common::int32_t(cpu);
+    common::int32_t offset_ebp =   common::int32_t(cpu->ebp) - common::int32_t(cpu);
 
-    // Copy general registers
+    child->cpustate = (CPUState*)(((common::int32_t)child->stack) + offset_cpu);
+    // child->cpustate->esp = (common::int32_t) child->cpustate;
+    child->cpustate->ebp = (common::int32_t)child->cpustate + offset_ebp ;
+    child->cpustate->esp = child->cpustate->ebp + 982;
+    // child->cpustate->esp = 0;
+    // child->cpustate->eip = cpu->eip - 2;
+
+
+
+    // // Set up child's CPU state at the end of the new stack
+    // child->cpustate = (CPUState*)(child->stack + 4096 - sizeof(CPUState));
+
+    // // Copy general registers
     child->cpustate->eax = cpu->eax;
     child->cpustate->ebx = cpu->ebx;
     child->cpustate->ecx = cpu->ecx;
     child->cpustate->edx = cpu->edx;
+
     child->cpustate->esi = cpu->esi;
     child->cpustate->edi = cpu->edi;
+    child->cpustate->ss  = cpu->ss;
 
-    child->cpustate->ebp = cpu->ebp;
-    child->cpustate->esp = parentCpu->esp;
+    // myos::common::uint32_t offset_ebp =  (uint32_t)parent->stack - cpu->ebp;
+    //     myos::common::uint32_t offset_esp = parentCpu->ebp - parentCpu->esp ;
 
-    myos::common::uint32_t offset_esp = parentCpu->esp - (uint32_t)parent->stack;
-    myos::common::uint32_t offset_ebp = parentCpu->ebp - (uint32_t)parent->stack;
 
-    child->cpustate->ebp = (uint32_t)child->stack + offset_ebp;
-    child->cpustate->esp = (uint32_t)child->stack + offset_esp; 
+    // child->cpustate->ebp = (uint32_t)child->stack - offset_ebp;
+    // child->cpustate->esp = child->cpustate->ebp - offset_esp;
+    //     child->cpustate->edi = child->cpustate->ebp - 20;
+    //     child->cpustate->esi = parent->cpustate->esi;
+
+
+
+    // printf("offset_esp: ");
+    // printfHex32(offset_esp);
+    // printf("offset_ebp: ");
+    // printfHex32(offset_ebp);
+    // printf("child->cpustate->esp: ");
+    // printfHex32(child->cpustate->esp);
+    // printf("child->cpustate->ebp: ");
+    // printfHex32(child->cpustate->ebp);
 
     // Assuming you want to continue execution right after the fork call, not decrement EIP
-    child->cpustate->eip = cpu->eip - 2;
+    child->cpustate->eip = cpu->eip;
 
     // Update the code segment selector and EFLAGS
     child->cpustate->cs = gdt->CodeSegmentSelector();
-    child->cpustate->eflags = 0x202;  // Typically, you would want to preserve the parent's EFLAGS unless specific changes are needed
+    child->cpustate->eflags = cpu->eflags;  // Typically, you would want to preserve the parent's EFLAGS unless specific changes are needed
 
     // Set GDT pointer
     child->gdt = gdt;
@@ -209,6 +237,11 @@ common::uint32_t TaskManager::Fork(CPUState* cpu, CPUState* parentCpu) {
     printfHex32(nextpid);
     tasks[numTasks].pid = nextpid;
     
+    printf("ebp - esp: ");
+    printfHex32(parentCpu->ebp - parentCpu->esp);
+    printf("ebp - esp in child: ");
+    printfHex32(tasks[numTasks].cpustate->ebp - tasks[numTasks].cpustate->esp);
+
     printAll();
 
     //Print parent registers
@@ -249,6 +282,8 @@ common::uint32_t TaskManager::Fork(CPUState* cpu, CPUState* parentCpu) {
 
     //Print parentCpu rgisters
     printf("cpu registers: \n");
+    printf("cpu: ");
+    printfHex32((uint32_t)cpu);
     printf("eax: ");
     printfHex32(cpu->eax);
     printf("ebx: ");
@@ -334,8 +369,7 @@ common::uint32_t TaskManager::Fork(CPUState* cpu, CPUState* parentCpu) {
     printf("eflags: ");
     printfHex32(tasks[numTasks].cpustate->eflags);
     printf("\n");
-
-    numTasks++;
+numTasks++;
     return tasks[currentTask].getPid();  // Return success
 }
 
