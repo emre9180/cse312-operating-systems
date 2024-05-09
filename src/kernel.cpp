@@ -227,25 +227,31 @@ void taskB()
 void taskC(){
     uint32_t result = 0;  // Define result variable outside the loop
     uint32_t i = 0;
-    // for(i = 0; i < 10; i++)
+    for(i = 0; i < 10; i++)
+    {
+        if(i == 5) {
+            FORK(result);  // Use the macro here
+            if (result == 0) {  // Child process
+                printf("Child Process Started\n");
+            } else {  // Parent process
+                printf("Parent Continues\n");
+            }
+        }
+        printfHex32(i);
+    }
+
+    // // Fork and get pid
+    // FORK(result);
+    // printf("forked");
+
+    // if(result == 0)
     // {
-    //     if(i==5)
-    //         FORK(result);  // Use the macro here
-    //     printfHex(i);
+    //     printf("child");
     // }
-
-    // Fork and get pid
-    FORK(result);
-    printf("forked");
-
-    if(result == 0)
-    {
-        printf("child");
-    }
-    else
-    {
-        printf("parent");
-    }
+    // else
+    // {
+    //     printf("parent");
+    // }
     
     printf("slm");
     while(1);    
