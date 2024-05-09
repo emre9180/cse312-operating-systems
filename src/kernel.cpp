@@ -33,8 +33,9 @@ using namespace myos::hardwarecommunication;
 using namespace myos::gui;
 using namespace myos::net;
 
+GlobalDescriptorTable gdt;
 
-
+    TaskManager taskManager(&gdt);
 void printf(char* str)
 {
     static uint16_t* VideoMemory = (uint16_t*)0xb8000;
@@ -197,7 +198,7 @@ public:
 
 common::uint32_t fork() {
     common::uint32_t result = 55;
-    asm volatile("int $0x80" : "=a" (result) : "a" (1));  // System call number 1 for fork()
+    asm volatile("int $0x80" : "=a" (result) : "a" (1) , "b" (taskManager.getEsp()));  // System call number 1 for fork()
     // asm("int $0x80" : : "a" (3));
     // asm("int $0x80" : : "a" (1));
     return result;
@@ -221,16 +222,32 @@ void taskB()
 }
 
 
+#define FORK(result) asm volatile("int $0x80" : "=a" (result) : "a" (1));  // System call number 1 for fork()
 
 void taskC(){
-   
-    for(int i = 0; i < 10; i++)
+    uint32_t result = 0;  // Define result variable outside the loop
+    uint32_t i = 0;
+    // for(i = 0; i < 10; i++)
+    // {
+    //     if(i==5)
+    //         FORK(result);  // Use the macro here
+    //     printfHex(i);
+    // }
+
+    // Fork and get pid
+    FORK(result);
+    printf("forked");
+
+    if(result == 0)
     {
-        if(i==5)
-            uint8_t result = fork();
-        printfHex(i);
+        printf("child");
+    }
+    else
+    {
+        printf("parent");
     }
     
+    printf("slm");
     while(1);    
 }
    
@@ -245,39 +262,27 @@ extern "C" void callConstructors()
         (*i)();
 }
 
-
+    
 
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot_magic*/)
 {
     printf("Hello World! --- http://www.AlgorithMan.de\n");
 
-    GlobalDescriptorTable gdt;
     
     
     uint32_t* memupper = (uint32_t*)(((size_t)multiboot_structure) + 8);
     size_t heap = 10*1024*1024;
     MemoryManager memoryManager(heap, (*memupper)*1024 - heap - 10*1024);
     
-    printf("heap: 0x");
-    printfHex((heap >> 24) & 0xFF);
-    printfHex((heap >> 16) & 0xFF);
-    printfHex((heap >> 8 ) & 0xFF);
-    printfHex((heap      ) & 0xFF);
     
     void* allocated = memoryManager.malloc(1024);
-    printf("\nallocated: 0x");
-    printfHex(((size_t)allocated >> 24) & 0xFF);
-    printfHex(((size_t)allocated >> 16) & 0xFF);
-    printfHex(((size_t)allocated >> 8 ) & 0xFF);
-    printfHex(((size_t)allocated      ) & 0xFF);
-    printf("\n");
+
     
-    TaskManager taskManager(&gdt);
     
     // Task task1(&gdt, taskA);
-    Task task3(&gdt, taskB);
+    // Task task3(&gdt, taskB);
     // taskManager.AddTask(&task1);
-    taskManager.AddTask(&task3);
+    // taskManager.AddTask(&task3);
     
 
    Task task2(&gdt, taskC);
@@ -285,8 +290,9 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     
     InterruptManager interrupts(0x20, &gdt, &taskManager);
     SyscallHandler syscalls(&interrupts, 0x80);
+     interrupts.Activate();
+     while(1);
     
-    printf("Initializing Hardware, Stage 1\n");
     
     #ifdef GRAPHICSMODE
         Desktop desktop(320,200, 0x00,0x00,0xA8);
@@ -318,11 +324,8 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
             VideoGraphicsArray vga;
         #endif
         
-    printf("Initializing Hardware, Stage 2\n");
         drvManager.ActivateAll();
         
-    printf("Initializing Hardware, Stage 3\n");
-
     #ifdef GRAPHICSMODE
         vga.SetMode(320,200,8);
         Window win1(&desktop, 10,10,20,20, 0xA8,0x00,0x00);
@@ -392,9 +395,8 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     TransmissionControlProtocolProvider tcp(&ipv4);
     
     
-    interrupts.Activate();
+   
 
-    printf("\n\n\n\n");
     
     arp.BroadcastMACAddress(gip_be);
     
