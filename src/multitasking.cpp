@@ -32,7 +32,7 @@ Task::Task(GlobalDescriptorTable *gdt, void entrypoint())
     cpustate -> cs = gdt->CodeSegmentSelector();
     // cpustate -> ss = ;
     cpustate -> eflags = 0x202;
-    forked = false;
+    forked = true;
     this->gdt = gdt;
 }
 
@@ -124,31 +124,31 @@ void TaskManager::printAll()
 
 common::uint32_t TaskManager::getEsp()
 {
-    return tasks[currentTask].cpustate->esp;
+    return (common::uint32_t)tasks[currentTask].cpustate;
 }
 void copyTask(Task* parent, Task* child, CPUState* cpu, GlobalDescriptorTable *gdt, CPUState* parentCpu) {
     // Copy stack
 
     child->cpustate = (CPUState*)(child->stack + 4096 - sizeof(CPUState));
 
-    for (int j = 0; j < sizeof(child->stack); j++) {
+    // copy stack
+    for(int j = 0; j < 4096; j++)
+    {
         child->stack[j] = parent->stack[j];
     }
 
     common::int32_t offset_cpu =   common::int32_t(parent->stack) - common::int32_t(cpu);
-    common::int32_t offset_ebp =   common::int32_t(cpu->ebp) - common::int32_t(cpu);
+    common::int32_t offset_esp =   common::int32_t(cpu->esp) - common::int32_t(parent->stack);
+    common::int32_t parent_esp_ebp_offset = cpu->esp - cpu->ebp;
 
-    child->cpustate = (CPUState*)(((common::int32_t)child->stack) + offset_cpu);
+    child->cpustate = (CPUState*)(((common::int32_t)child->stack) - offset_cpu);
     // child->cpustate->esp = (common::int32_t) child->cpustate;
-    child->cpustate->ebp = (common::int32_t)child->cpustate + offset_ebp ;
-    child->cpustate->esp = child->cpustate->ebp + 982;
+    child->cpustate->ebp = (common::int32_t) ((CPUState*)(child->stack + 4096 - sizeof(CPUState)));
+    // child->cpustate->esp = (common::int32_t)child->stack + offset_esp ;
+    // child->cpustate->esp = child->cpustate->ebp + parent_esp_ebp_offset;
     // child->cpustate->esp = 0;
-    // child->cpustate->eip = cpu->eip - 2;
 
 
-
-    // // Set up child's CPU state at the end of the new stack
-    // child->cpustate = (CPUState*)(child->stack + 4096 - sizeof(CPUState));
 
     // // Copy general registers
     child->cpustate->eax = cpu->eax;
@@ -160,37 +160,20 @@ void copyTask(Task* parent, Task* child, CPUState* cpu, GlobalDescriptorTable *g
     child->cpustate->edi = cpu->edi;
     child->cpustate->ss  = cpu->ss;
 
-    // myos::common::uint32_t offset_ebp =  (uint32_t)parent->stack - cpu->ebp;
-    //     myos::common::uint32_t offset_esp = parentCpu->ebp - parentCpu->esp ;
+    // child->cpustate->ebp = cpu->ebp;
+    // child->cpustate->esp = cpu->esp;
 
-
-    // child->cpustate->ebp = (uint32_t)child->stack - offset_ebp;
-    // child->cpustate->esp = child->cpustate->ebp - offset_esp;
-    //     child->cpustate->edi = child->cpustate->ebp - 20;
-    //     child->cpustate->esi = parent->cpustate->esi;
-
-
-
-    // printf("offset_esp: ");
-    // printfHex32(offset_esp);
-    // printf("offset_ebp: ");
-    // printfHex32(offset_ebp);
-    // printf("child->cpustate->esp: ");
-    // printfHex32(child->cpustate->esp);
-    // printf("child->cpustate->ebp: ");
-    // printfHex32(child->cpustate->ebp);
 
     // Assuming you want to continue execution right after the fork call, not decrement EIP
-    child->cpustate->eip = cpu->eip;
+    child->cpustate->eip = cpu->eip - 2;;
 
     // Update the code segment selector and EFLAGS
     child->cpustate->cs = gdt->CodeSegmentSelector();
     child->cpustate->eflags = cpu->eflags;  // Typically, you would want to preserve the parent's EFLAGS unless specific changes are needed
-
-    // Set GDT pointer
     child->gdt = gdt;
 
 }
+
 
 
 void taskA();
@@ -225,7 +208,7 @@ common::uint32_t TaskManager::Fork(CPUState* cpu, CPUState* parentCpu) {
     // numTasks++;
     if(tasks[currentTask].isForked() == true) {
         printf("Cannot fork a forked task\n");
-        tasks[currentTask].setForked(false); // Reset the forked flag
+        // tasks[currentTask].setForked(false); // Reset the forked flag
         return 0;
     }
 
@@ -242,7 +225,7 @@ common::uint32_t TaskManager::Fork(CPUState* cpu, CPUState* parentCpu) {
     printf("ebp - esp in child: ");
     printfHex32(tasks[numTasks].cpustate->ebp - tasks[numTasks].cpustate->esp);
 
-    printAll();
+    
 
     //Print parent registers
     printf("Parent registers: \n");
@@ -310,33 +293,33 @@ common::uint32_t TaskManager::Fork(CPUState* cpu, CPUState* parentCpu) {
     printfHex32(cpu->eflags);
     printf("\n");
 
-    //Print current task rgisters
-    printf("current task registers: \n");
-    printf("eax: ");
-    printfHex32(tasks[currentTask].cpustate->eax);
-    printf("ebx: ");
-    printfHex32(tasks[currentTask].cpustate->ebx);
-    printf("ecx: ");
-    printfHex32(tasks[currentTask].cpustate->ecx);
-    printf("edx: ");
-    printfHex32(tasks[currentTask].cpustate->edx);
-    printf("esi: ");
-    printfHex32(tasks[currentTask].cpustate->esi);
-    printf("edi: ");
-    printfHex32(tasks[currentTask].cpustate->edi);
-    printf("ebp: ");
-    printfHex32(tasks[currentTask].cpustate->ebp);
-    printf("eip: ");
-    printfHex32(tasks[currentTask].cpustate->eip);
-    printf("esp: ");
-    printfHex32(tasks[currentTask].cpustate->esp);
-    printf("cs: ");
-    printfHex32(tasks[currentTask].cpustate->cs);
-    printf("ss: ");
-    printfHex32(tasks[currentTask].cpustate->ss);
-    printf("eflags: ");
-    printfHex32(tasks[currentTask].cpustate->eflags);
-    printf("\n");
+    // //Print current task rgisters
+    // printf("current task registers: \n");
+    // printf("eax: ");
+    // printfHex32(tasks[currentTask].cpustate->eax);
+    // printf("ebx: ");
+    // printfHex32(tasks[currentTask].cpustate->ebx);
+    // printf("ecx: ");
+    // printfHex32(tasks[currentTask].cpustate->ecx);
+    // printf("edx: ");
+    // printfHex32(tasks[currentTask].cpustate->edx);
+    // printf("esi: ");
+    // printfHex32(tasks[currentTask].cpustate->esi);
+    // printf("edi: ");
+    // printfHex32(tasks[currentTask].cpustate->edi);
+    // printf("ebp: ");
+    // printfHex32(tasks[currentTask].cpustate->ebp);
+    // printf("eip: ");
+    // printfHex32(tasks[currentTask].cpustate->eip);
+    // printf("esp: ");
+    // printfHex32(tasks[currentTask].cpustate->esp);
+    // printf("cs: ");
+    // printfHex32(tasks[currentTask].cpustate->cs);
+    // printf("ss: ");
+    // printfHex32(tasks[currentTask].cpustate->ss);
+    // printf("eflags: ");
+    // printfHex32(tasks[currentTask].cpustate->eflags);
+    // printf("\n");
     
     //Print current task rgisters
     printf("ADDED task registers: \n");
@@ -370,6 +353,7 @@ common::uint32_t TaskManager::Fork(CPUState* cpu, CPUState* parentCpu) {
     printfHex32(tasks[numTasks].cpustate->eflags);
     printf("\n");
 numTasks++;
+printAll();
     return tasks[currentTask].getPid();  // Return success
 }
 
@@ -381,6 +365,9 @@ TaskManager::TaskManager(GlobalDescriptorTable *gdt)
     numTasks = 0;
     currentTask = -1;
     nextPid = 1;
+
+    tasks[0].forked = true;
+    tasks[1].forked = true;
 
     // for(int i = 0; i < 256; i++)
     // {
@@ -461,16 +448,15 @@ Task::Task()
     cpustate -> cs = gdt->CodeSegmentSelector();
     // cpustate -> ss = ;
     cpustate -> eflags = 0x202;
-    forked = false;
     this->gdt = gdt;
     this->pid = 0;
-    this->forked = false;
+    this->forked = true;
 }
 
 CPUState* TaskManager::Schedule(CPUState* cpustate)
 {
     // printf("Scheduling task\n");
-
+    // printfHex(currentTask %= numTasks);
     if(numTasks <= 0)
         return cpustate;
     if(currentTask >= 0)

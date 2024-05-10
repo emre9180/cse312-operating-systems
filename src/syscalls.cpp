@@ -24,7 +24,7 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp) {
     switch(cpu->eax) {
         case 1: // FORK
         asm("cli");
-            cpu->eax = this->interruptManager->getTaskManager()->Fork(cpu, parentCpu);  // Capture fork result
+            cpu->ecx = this->interruptManager->getTaskManager()->Fork(cpu, parentCpu);  // Capture fork result
             // this->interruptManager->getTaskManager()->Fork(); 
             asm("sti");
             break;

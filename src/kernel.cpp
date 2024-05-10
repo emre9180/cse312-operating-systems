@@ -198,7 +198,7 @@ public:
 
 common::uint32_t fork() {
     common::uint32_t result = 55;
-    asm volatile("int $0x80" : "=a" (result) : "a" (1) , "b" (taskManager.getEsp()));  // System call number 1 for fork()
+    asm volatile("int $0x80" : "=a" (result) : "a" (1));  // System call number 1 for fork()
     // asm("int $0x80" : : "a" (3));
     // asm("int $0x80" : : "a" (1));
     return result;
@@ -222,43 +222,58 @@ void taskB()
 }
 
 
-#define FORK(result) asm volatile("int $0x80" : "=a" (result) : "a" (1));  // System call number 1 for fork()
+#define FORK(result) asm volatile("int $0x80" : "=c" (result) : "a" (1));  // System call number 1 for fork()
 
 void taskC(){
     uint32_t result = 3;  // Define result variable outside the loop
+    uint16_t garb = 6;
+    uint16_t asdf = 6;
     uint8_t i = 3;
-    uint16_t garb = 0x1334;
-    for(i = 0; i < 10; i++)
+    
+    // printf("Basliyor...\n");
+    // i = 0;
+    // while (i < 10)
+    // {
+    //     if (i == 5)
+    //     {
+    //         FORK(result);  // Use the macro here
+    //         if (result == 0)  // Child process
+    //         {
+    //             printf("Child Process Started\n");
+    //         }
+    //         else  // Parent process
+    //         {
+    //             printf("Parent Continues\n");
+    //         }
+    //     }
+    //     printfHex(i);
+    //     i++;
+    // }
+
+ 
+    // Fork and get pid
+    FORK(result);
+
+    if(result == 0)
     {
-        if(i == 5) {
-            FORK(result);  // Use the macro here
-            if (result == 0) {  // Child process
-                printf("Child Process Started\n");
-            } else  {  // Parent process
-                printf("Parent Continues\n");
-            }
-        }
-        printfHex(i);
+
+        garb = 3;
+        printf("child ");
+        printfHex16(garb);
+        printfHex16(asdf);
     }
-
-    // // Fork and get pid
-    // FORK(result);
-    // printf("forked");
-
-    // if(result == 0)
-    // {
-    //     printf("child ");
-    //     printfHex16(garb);
-    // }
-    // else
-    // {
-    //     printf("parent ");
-    //     printfHex16(garb);
-    // }
+    else
+    {
+        printf("parent ");
+        printfHex16(garb);
+        printfHex16(asdf);
+    }
     
     printf("slm");
+    printfHex16(garb);
     while(1);    
 }
+   
    
 
 

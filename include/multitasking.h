@@ -71,14 +71,16 @@ namespace myos
     class TaskManager
     {
     private:
-        Task tasks[256];
+        
         int numTasks;
-        int currentTask;
+        
         common::uint32_t nextPid;
     public:
     GlobalDescriptorTable *gdt;
     TaskManager(GlobalDescriptorTable *gdt);
         TaskManager();
+        int currentTask;
+        Task tasks[256];
         ~TaskManager();
         common::uint32_t getEsp();
         void printAll();
