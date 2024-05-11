@@ -59,6 +59,7 @@ namespace myos
             Task(GlobalDescriptorTable *gdt, void entrypoint());
             ~Task();
             Task();
+            int priority;
             GlobalDescriptorTable* getGdt();
             common::uint32_t getId();
 

@@ -213,9 +213,11 @@ void taskA()
 
 // Function to print the Collatz sequence for a given number n
 void printCollatz(int n) {
+    int temp_n = n;
     printfHex(n);
     for(int i=0;i<100;i++)
     {
+        n = temp_n;
         while (n != 1) {
             if (n % 2 == 0) {
                 n = n / 2;
@@ -227,6 +229,7 @@ void printCollatz(int n) {
                 printf(", ");
             }
         }
+        for(int i=0;i<100000000;i++);
     }
     printf("  "); // New line after each sequence
 }
@@ -287,19 +290,19 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
     size_t heap = 10 * 1024 * 1024;
     MemoryManager memoryManager(heap, (*memupper) * 1024 - heap - 10 * 1024);
 
-    printf("heap: 0x");
-    printfHex((heap >> 24) & 0xFF);
-    printfHex((heap >> 16) & 0xFF);
-    printfHex((heap >> 8) & 0xFF);
-    printfHex((heap) & 0xFF);
+    // printf("heap: 0x");
+    // printfHex((heap >> 24) & 0xFF);
+    // printfHex((heap >> 16) & 0xFF);
+    // printfHex((heap >> 8) & 0xFF);
+    // printfHex((heap) & 0xFF);
 
     void *allocated = memoryManager.malloc(1024);
-    printf("\nallocated: 0x");
-    printfHex(((size_t)allocated >> 24) & 0xFF);
-    printfHex(((size_t)allocated >> 16) & 0xFF);
-    printfHex(((size_t)allocated >> 8) & 0xFF);
-    printfHex(((size_t)allocated) & 0xFF);
-    printf("\n");
+    // printf("\nallocated: 0x");
+    // printfHex(((size_t)allocated >> 24) & 0xFF);
+    // printfHex(((size_t)allocated >> 16) & 0xFF);
+    // printfHex(((size_t)allocated >> 8) & 0xFF);
+    // printfHex(((size_t)allocated) & 0xFF);
+    // printf("\n");
 
     TaskManager taskManager;
 
