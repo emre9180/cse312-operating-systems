@@ -25,6 +25,7 @@ namespace myos
     int sefa(int *pid);
     void waitpid(int pid);
     void exit();
+    void execve(void entrypoint());
 
 
 }

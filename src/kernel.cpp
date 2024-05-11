@@ -176,6 +176,12 @@ void sysprintf(char *str)
     asm("int $0x80" : : "a"(4), "b"(str));
 }
 
+void taskB()
+{
+        sysprintf("B");
+        while(1);
+}
+
 void taskA()
 {
     int test = -1;
@@ -187,6 +193,7 @@ void taskA()
         printf("Child");
         test = 23;
         printfHex(test);
+        for(int i=0;i<1000000000;i++);
         exit();
     }
 
@@ -196,15 +203,69 @@ void taskA()
         printf("Parent");
         test = 31;
         printfHex(test);
+        execve(taskB);
     }
+
+    printf("Terminate A");
     while (true);
         
 }
 
-void taskB()
+// Function to print the Collatz sequence for a given number n
+void printCollatz(int n) {
+    printfHex(n);
+    for(int i=0;i<100;i++)
+    {
+        while (n != 1) {
+            if (n % 2 == 0) {
+                n = n / 2;
+            } else {
+                n = 3 * n + 1;
+            }
+            printfHex(n);
+            if (n != 1) {
+                printf(", ");
+            }
+        }
+    }
+    printf("  "); // New line after each sequence
+}
+
+void long_running_program(int n) {
+    int result = 0; // Use long long for larger results
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            result += i * j;
+        }
+    }
+}
+
+
+void init()
 {
-    while (true)
-        sysprintf("B");
+    printf("Init process started.\n");
+    printf("Collatz and long_running_program will be executed by fork operation.\n");
+
+    int pid;
+
+    pid = sefa(&pid);
+
+    if (pid == 0) {
+        // Child process
+        printf("Forked and run Collatz.\n");
+        printCollatz(27);
+        exit();
+    } else {
+        // Parent process
+        printf("Forked and run long runnning program.\n");
+        long_running_program(1000);
+        printf("Waiting for child process to finish.\n");
+        printfHex(pid);
+        waitpid(pid);
+        printf("Child process finished.\n");
+    }
+
+    while(1);
 }
 
 typedef void (*constructor)();
@@ -218,7 +279,7 @@ extern "C" void callConstructors()
 
 extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot_magic*/)
 {
-    printf("Hello World! --- MSC\n");
+    printf("Hello World!\n");
 
     GlobalDescriptorTable gdt;
 
@@ -242,7 +303,7 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
 
     TaskManager taskManager;
 
-    Task task1(&gdt, taskA);
+    Task task1(&gdt, init);
     // Task task2(&gdt, taskB);
     taskManager.AddTask(&task1);
     // taskManager.AddTask(&task2);

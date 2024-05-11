@@ -38,6 +38,7 @@ Task::Task(GlobalDescriptorTable *gdt, void entrypoint())
     cpustate -> cs = gdt->CodeSegmentSelector();
     // cpustate -> ss = ;
     cpustate -> eflags = 0x202;
+    this->gdt = gdt;
     
 }
 
@@ -157,6 +158,13 @@ bool TaskManager::AddTask(Task* task)
 
     numTasks++;
     return true;
+}
+
+bool TaskManager::Execve(CPUState* cpustate, void entrypoint())
+{
+    tasks[currentTask].state = TASK_TERMINATED;
+    Task task(tasks[currentTask].gdt, entrypoint);
+    AddTask(&task);
 }
 
 // WAİT READY RUNING FINSI

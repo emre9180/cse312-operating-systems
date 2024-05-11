@@ -53,11 +53,13 @@ namespace myos
             TaskState state;
             common::uint32_t waitPid;
             CPUState* cpustate;
+            GlobalDescriptorTable* gdt;
 
         public:
             Task(GlobalDescriptorTable *gdt, void entrypoint());
             ~Task();
             Task();
+            GlobalDescriptorTable* getGdt();
             common::uint32_t getId();
 
             //moveto priv
@@ -79,6 +81,7 @@ namespace myos
             common::uint32_t GetPId();
             bool ExitTask(CPUState *cpustate);
             bool WaitPID(common::uint32_t pid, CPUState* cpustate);
+            bool Execve(CPUState* cpustate, void entrypoint());
             
             TaskManager();
             ~TaskManager();

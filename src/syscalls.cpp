@@ -41,6 +41,11 @@ void myos::exit()
     asm("int $0x80" :: "a"(1));
 }
 
+void myos::execve(void entrypoint())
+{
+    asm("int $0x80" :: "a"(11), "b"(entrypoint));
+}
+
 uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
 {
     CPUState* cpu = (CPUState*)esp;
@@ -61,6 +66,11 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
             break;
         case 4:
             printf((char*)cpu->ebx);
+            break;
+        
+        case 11:
+            cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->Execve(cpu, (void (*)())cpu->ebx);
+            asm("int $0x20" : : "a"(cpu));
             break;
             
         default:
