@@ -54,7 +54,10 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
     switch(cpu->eax)
     {
         case 1:
+            // Deactive timer
+            asm("cli");
             cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->ExitTask(cpu);
+            asm("sti");
             asm("int $0x20" : : "a"(cpu));
             break;
         case 2:

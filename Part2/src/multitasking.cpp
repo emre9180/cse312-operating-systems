@@ -11,7 +11,7 @@ void printfHex32(uint32_t key);
 
 myos::common::uint32_t myos::Task::pIdCounter = 0;
 
-Task::Task(GlobalDescriptorTable *gdt, void entrypoint())
+Task::Task(GlobalDescriptorTable *gdt, void entrypoint(), int priority)
 {
     cpustate = (CPUState*)(stack + 4096 - sizeof(CPUState));
     
@@ -39,7 +39,8 @@ Task::Task(GlobalDescriptorTable *gdt, void entrypoint())
     // cpustate -> ss = ;
     cpustate -> eflags = 0x202;
     this->gdt = gdt;
-    
+    this->priority = priority;
+    this->state = TASK_READY;
 }
 
 Task::~Task()
@@ -81,6 +82,7 @@ common::uint32_t TaskManager::ForkTask(CPUState *cpustate)
     tasks[numTasks].state = TASK_READY;
     tasks[numTasks].pPid = tasks[currentTask].pid;
     tasks[numTasks].pid = nextpid++;
+    tasks[numTasks].priority = tasks[currentTask].priority;
 
     for (int i = 0; i < sizeof(tasks[currentTask].stack); i++)
     {
@@ -95,7 +97,7 @@ common::uint32_t TaskManager::ForkTask(CPUState *cpustate)
     tasks[numTasks].cpustate->eip -= 2;
     numTasks++;
     
-    printfHex(tasks[numTasks-1].pid);
+    // printfHex(tasks[numTasks-1].pid);
     return tasks[numTasks-1].pid;
 }
 
@@ -153,6 +155,7 @@ bool TaskManager::AddTask(Task* task)
     tasks[numTasks].cpustate -> eip = task->cpustate->eip;
     tasks[numTasks].cpustate -> cs = task->cpustate->cs;
     tasks[numTasks].cpustate -> eflags = task->cpustate->eflags;
+    tasks[numTasks].priority = task->priority;
     //tasks[numTasks].cpustate -> esp = task->cpustate->esp;
     //tasks[numTasks].cpustate -> ss = task->cpustate->ss;
 
@@ -163,11 +166,22 @@ bool TaskManager::AddTask(Task* task)
 bool TaskManager::Execve(CPUState* cpustate, void entrypoint())
 {
     tasks[currentTask].state = TASK_TERMINATED;
-    Task task(tasks[currentTask].gdt, entrypoint);
+    Task task(tasks[currentTask].gdt, entrypoint, 20);
     AddTask(&task);
 }
 
 // WAİT READY RUNING FINSI
+
+int TaskManager::getMaxPriority()
+{
+    int maxPriority = -1;
+    for (int i = 0; i < numTasks; i++)
+    {
+        if(tasks[i].priority > maxPriority && tasks[i].state == TASK_READY)
+            maxPriority = tasks[i].priority;
+    }
+    return maxPriority;
+}
 
 CPUState* TaskManager::Schedule(CPUState* cpustate)
 {
@@ -176,34 +190,33 @@ CPUState* TaskManager::Schedule(CPUState* cpustate)
     
     if(currentTask >= 0)
         tasks[currentTask].cpustate = cpustate;
-    // PrintProcessTable();
+
+    int maxPriority = getMaxPriority();
 
     int findTask=(currentTask+1)%numTasks;
-    while(tasks[findTask].state != TASK_READY)
+    while(tasks[findTask].state != TASK_READY || tasks[findTask].priority != maxPriority)
     {
         if(tasks[findTask].state == TASK_WAITING && tasks[tasks[findTask].waitPid-1].state == TASK_TERMINATED)
         {
-            tasks[findTask].state = TASK_READY;
-            tasks[findTask].waitPid = 0;
-            break;
-        }
-        {
-            int waitTaskIndex = 0;
-            //waitTaskIndex=getIndex(tasks[findTask].waitPid);
-            if(waitTaskIndex > -1 && tasks[waitTaskIndex].state != TASK_WAITING)
+            if(tasks[findTask].priority==maxPriority)
             {
-                if(tasks[waitTaskIndex].state == TASK_RUNNING)
-                {
-                    tasks[findTask].state = TASK_WAITING;
-                    tasks[findTask].waitPid = 0;
-                }
-                else if (tasks[waitTaskIndex].state == TASK_READY)
-                {
-                    findTask = waitTaskIndex;
-                    continue;
-                }
+                tasks[findTask].state = TASK_READY;
+                tasks[findTask].waitPid = 0;
+                break;
+            }
+
+            else
+            {
+                tasks[findTask].state = TASK_READY;
+                tasks[findTask].waitPid = 0;
+                findTask=(findTask+1)%numTasks;
+                continue;
             }
         }
+
+        else if(tasks[findTask].priority==maxPriority && tasks[findTask].state==TASK_READY)
+            break;
+
         findTask=(findTask+1)%numTasks;
     }
 

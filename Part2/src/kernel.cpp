@@ -182,6 +182,30 @@ void taskB()
         while(1);
 }
 
+void taskD()
+{
+     sysprintf("D");;
+        for(int i=0;i<1000;i++);
+        exit();
+        while(1);
+}
+
+void taskE()
+{
+     sysprintf("E");
+        for(int i=0;i<1000;i++);
+        exit();
+        while(1);
+}
+
+void taskF()
+{
+        sysprintf("F");
+        for(int i=0;i<1000;i++) ;
+        exit();
+        while(1);
+}
+
 void taskA()
 {
     int test = -1;
@@ -207,12 +231,12 @@ void taskA()
     }
 
     printf("Terminate A");
-    while (true);
-        
+    while (true); 
 }
 
 // Function to print the Collatz sequence for a given number n
-void printCollatz(int n) {
+void printCollatz() {
+    int n = 50;
     int temp_n = n;
     printfHex(n);
     for(int i=0;i<100;i++)
@@ -229,10 +253,54 @@ void printCollatz(int n) {
                 printf(", ");
             }
         }
-        for(int i=0;i<100000000;i++);
+        // for(int i=0;i<100000000;i++);
     }
     printf("  "); // New line after each sequence
 }
+
+void TaskV2()
+{
+    int pid;
+    pid = sefa(&pid);
+
+    if (pid == 0) {
+        // printCollatz();
+        exit();
+    }
+
+    printf("enes ");
+
+    // else
+    // {
+    //     printf("\nChildren:\n");
+    //     for(int i=0;i<1000000000;i++);
+    //     pid = sefa(&pid);
+
+    //     if (pid == 0) {
+    //         execve(taskD);
+    //     }
+
+    //     else
+    //     {
+    //         pid = sefa(&pid);
+
+    //         if (pid == 0) {
+    //             execve(taskE);
+    //         }
+
+    //         else
+    //         {
+    //             pid = sefa(&pid);
+
+    //             if (pid == 0) {
+    //                 execve(taskF);
+    //             }
+    //         }
+    //     }
+    // }
+    while(1);
+}
+
 
 void long_running_program(int n) {
     int result = 0; // Use long long for larger results
@@ -256,7 +324,7 @@ void init()
     if (pid == 0) {
         // Child process
         printf("Forked and run Collatz.\n");
-        printCollatz(27);
+        printCollatz();
         exit();
     } else {
         // Parent process
@@ -306,10 +374,22 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
 
     TaskManager taskManager;
 
-    Task task1(&gdt, init);
+    // Task task1(&gdt, init);
+    // taskManager.AddTask(&task1);
     // Task task2(&gdt, taskB);
-    taskManager.AddTask(&task1);
     // taskManager.AddTask(&task2);
+
+    // Task task1(&gdt, taskD, 0);
+    // taskManager.AddTask(&task1);
+
+    // Task task2(&gdt, taskE, 1);
+    // taskManager.AddTask(&task2);
+
+    // Task task3(&gdt, taskF, 2);
+    // taskManager.AddTask(&task3);
+
+    Task task4(&gdt, TaskV2, 10);
+    taskManager.AddTask(&task4);
 
     InterruptManager interrupts(0x20, &gdt, &taskManager);
     SyscallHandler syscalls(&interrupts, 0x80);

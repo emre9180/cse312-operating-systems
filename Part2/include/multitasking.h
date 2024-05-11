@@ -56,7 +56,7 @@ namespace myos
             GlobalDescriptorTable* gdt;
 
         public:
-            Task(GlobalDescriptorTable *gdt, void entrypoint());
+            Task(GlobalDescriptorTable *gdt, void entrypoint(), int priority);
             ~Task();
             Task();
             int priority;
@@ -88,7 +88,7 @@ namespace myos
             ~TaskManager();
             bool AddTask(Task *task);
             CPUState* Schedule(CPUState* cpustate);
-
+            int getMaxPriority();
             int getIndex(common::uint32_t pid);
 
 

@@ -271,6 +271,49 @@ void init()
     while(1);
 }
 
+void TaskV2()
+{
+    int pid;
+    pid = sefa(&pid);
+
+    if (pid == 0) {
+        // printCollatz();
+        exit();
+    }
+
+    printf("enes ");
+
+    // else
+    // {
+    //     printf("\nChildren:\n");
+    //     for(int i=0;i<1000000000;i++);
+    //     pid = sefa(&pid);
+
+    //     if (pid == 0) {
+    //         execve(taskD);
+    //     }
+
+    //     else
+    //     {
+    //         pid = sefa(&pid);
+
+    //         if (pid == 0) {
+    //             execve(taskE);
+    //         }
+
+    //         else
+    //         {
+    //             pid = sefa(&pid);
+
+    //             if (pid == 0) {
+    //                 execve(taskF);
+    //             }
+    //         }
+    //     }
+    // }
+    while(1);
+}
+
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
 extern "C" constructor end_ctors;
@@ -306,7 +349,7 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
 
     TaskManager taskManager;
 
-    Task task1(&gdt, init);
+    Task task1(&gdt, TaskV2);
     // Task task2(&gdt, taskB);
     taskManager.AddTask(&task1);
     // taskManager.AddTask(&task2);
