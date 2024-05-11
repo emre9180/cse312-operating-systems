@@ -19,9 +19,14 @@ namespace myos
         virtual myos::common::uint32_t HandleInterrupt(myos::common::uint32_t esp);
 
     };
-    
-    
-}
 
+    void fork();
+    void fork(int *pid);
+    int sefa(int *pid);
+    void waitpid(int pid);
+    void exit();
+
+
+}
 
 #endif

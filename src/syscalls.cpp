@@ -16,32 +16,58 @@ SyscallHandler::~SyscallHandler()
 
 
 void printf(char*);
+void myos::fork()
+{
+    asm("int $0x80" :: "a"(2));
+}
+void myos::fork(int *pid)
+{
+    asm("int $0x80" : "=c"(*pid) : "a"(2));
+}
 
-uint32_t SyscallHandler::HandleInterrupt(uint32_t esp) {
+int myos::sefa(int *pid)
+{
+    asm("int $0x80" : "=c"(*pid) : "a"(2));
+    return *pid;
+}
+
+void myos::waitpid(int pid)
+{
+    asm("int $0x80" :: "a"(3), "b"(pid));
+}
+
+void myos::exit()
+{
+    asm("int $0x80" :: "a"(1));
+}
+
+uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
+{
     CPUState* cpu = (CPUState*)esp;
-    CPUState* parentCpu = (CPUState*)cpu->ebx;
+    
 
-    switch(cpu->eax) {
-        case 1: // FORK
-        asm("cli");
-            cpu->ecx = this->interruptManager->getTaskManager()->Fork(cpu, parentCpu);  // Capture fork result
-            // this->interruptManager->getTaskManager()->Fork(); 
-            asm("sti");
+    switch(cpu->eax)
+    {
+        case 1:
+            cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->ExitTask(cpu);
+            asm("int $0x20" : : "a"(cpu));
             break;
-        case 2: // FORK
-            // cpu->eax = this->interruptManager->getTaskManager()->ForkHelper();  // Capture fork result
-            // this->interruptManager->getTaskManager()->Fork(); 
+        case 2:
+            cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->ForkTask(cpu);
             break;
-        case 4: // Print a string
+        case 3:
+            cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->WaitPID(cpu->ebx, cpu);
+            asm("int $0x20" : : "a"(cpu));
+            break;
+        case 4:
             printf((char*)cpu->ebx);
-            cpu->eax = 0; // Success
             break;
-
+            
         default:
-            cpu->eax = -1; // Unknown system call
             break;
     }
 
+    
     return esp;
 }
 

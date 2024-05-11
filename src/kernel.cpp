@@ -22,9 +22,7 @@
 #include <net/udp.h>
 #include <net/tcp.h>
 
-
 // #define GRAPHICSMODE
-
 
 using namespace myos;
 using namespace myos::common;
@@ -33,40 +31,39 @@ using namespace myos::hardwarecommunication;
 using namespace myos::gui;
 using namespace myos::net;
 
-GlobalDescriptorTable gdt;
-
-    TaskManager taskManager(&gdt);
-void printf(char* str)
+// For the printf function
+void printf(char *str)
 {
-    static uint16_t* VideoMemory = (uint16_t*)0xb8000;
+    // Write first location on the video memory
+    static uint16_t *VideoMemory = (uint16_t *)0xb8000;
 
-    static uint8_t x=0,y=0;
+    static uint8_t x = 0, y = 0;
 
-    for(int i = 0; str[i] != '\0'; ++i)
+    for (int i = 0; str[i] != '\0'; ++i)
     {
-        switch(str[i])
+        switch (str[i])
         {
-            case '\n':
-                x = 0;
-                y++;
-                break;
-            default:
-                VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0xFF00) | str[i];
-                x++;
-                break;
+        case '\n':
+            x = 0;
+            y++;
+            break;
+        default:
+            VideoMemory[80 * y + x] = (0x1F << 8) | str[i];
+            x++;
+            break;
         }
 
-        if(x >= 80)
+        if (x >= 80)
         {
             x = 0;
             y++;
         }
 
-        if(y >= 25)
+        if (y >= 25)
         {
-            for(y = 0; y < 25; y++)
-                for(x = 0; x < 80; x++)
-                    VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0xFF00) | ' ';
+            for (y = 0; y < 25; y++)
+                for (x = 0; x < 80; x++)
+                    VideoMemory[80 * y + x] = (0x1F << 8) | ' ';
             x = 0;
             y = 0;
         }
@@ -75,8 +72,8 @@ void printf(char* str)
 
 void printfHex(uint8_t key)
 {
-    char* foo = "00";
-    char* hex = "0123456789ABCDEF";
+    char *foo = "00";
+    char *hex = "0123456789ABCDEF";
     foo[0] = hex[(key >> 4) & 0xF];
     foo[1] = hex[key & 0xF];
     printf(foo);
@@ -84,26 +81,22 @@ void printfHex(uint8_t key)
 void printfHex16(uint16_t key)
 {
     printfHex((key >> 8) & 0xFF);
-    printfHex( key & 0xFF);
+    printfHex(key & 0xFF);
 }
 void printfHex32(uint32_t key)
 {
     printfHex((key >> 24) & 0xFF);
     printfHex((key >> 16) & 0xFF);
     printfHex((key >> 8) & 0xFF);
-    printfHex( key & 0xFF);
+    printfHex(key & 0xFF);
 }
-
-
-
-
 
 class PrintfKeyboardEventHandler : public KeyboardEventHandler
 {
 public:
     void OnKeyDown(char c)
     {
-        char* foo = " ";
+        char *foo = " ";
         foo[0] = c;
         printf(foo);
     }
@@ -112,340 +105,171 @@ public:
 class MouseToConsole : public MouseEventHandler
 {
     int8_t x, y;
+
 public:
-    
     MouseToConsole()
     {
-        uint16_t* VideoMemory = (uint16_t*)0xb8000;
+        uint16_t *VideoMemory = (uint16_t *)0xb8000;
         x = 40;
         y = 12;
-        VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0x0F00) << 4
-                            | (VideoMemory[80*y+x] & 0xF000) >> 4
-                            | (VideoMemory[80*y+x] & 0x00FF);        
+        VideoMemory[80 * y + x] = (VideoMemory[80 * y + x] & 0x0F00) << 4 | (VideoMemory[80 * y + x] & 0xF000) >> 4 | (VideoMemory[80 * y + x] & 0x00FF);
     }
-    
+
     virtual void OnMouseMove(int xoffset, int yoffset)
     {
-        static uint16_t* VideoMemory = (uint16_t*)0xb8000;
-        VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0x0F00) << 4
-                            | (VideoMemory[80*y+x] & 0xF000) >> 4
-                            | (VideoMemory[80*y+x] & 0x00FF);
+        static uint16_t *VideoMemory = (uint16_t *)0xb8000;
+        VideoMemory[80 * y + x] = (VideoMemory[80 * y + x] & 0x0F00) << 4 | (VideoMemory[80 * y + x] & 0xF000) >> 4 | (VideoMemory[80 * y + x] & 0x00FF);
 
         x += xoffset;
-        if(x >= 80) x = 79;
-        if(x < 0) x = 0;
+        if (x >= 80)
+            x = 79;
+        if (x < 0)
+            x = 0;
         y += yoffset;
-        if(y >= 25) y = 24;
-        if(y < 0) y = 0;
+        if (y >= 25)
+            y = 24;
+        if (y < 0)
+            y = 0;
 
-        VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0x0F00) << 4
-                            | (VideoMemory[80*y+x] & 0xF000) >> 4
-                            | (VideoMemory[80*y+x] & 0x00FF);
+        VideoMemory[80 * y + x] = (VideoMemory[80 * y + x] & 0x0F00) << 4 | (VideoMemory[80 * y + x] & 0xF000) >> 4 | (VideoMemory[80 * y + x] & 0x00FF);
     }
-    
 };
 
 class PrintfUDPHandler : public UserDatagramProtocolHandler
 {
 public:
-    void HandleUserDatagramProtocolMessage(UserDatagramProtocolSocket* socket, common::uint8_t* data, common::uint16_t size)
+    void HandleUserDatagramProtocolMessage(UserDatagramProtocolSocket *socket, common::uint8_t *data, common::uint16_t size)
     {
-        char* foo = " ";
-        for(int i = 0; i < size; i++)
+        char *foo = " ";
+        for (int i = 0; i < size; i++)
         {
             foo[0] = data[i];
             printf(foo);
         }
     }
 };
-
 
 class PrintfTCPHandler : public TransmissionControlProtocolHandler
 {
 public:
-    bool HandleTransmissionControlProtocolMessage(TransmissionControlProtocolSocket* socket, common::uint8_t* data, common::uint16_t size)
+    bool HandleTransmissionControlProtocolMessage(TransmissionControlProtocolSocket *socket, common::uint8_t *data, common::uint16_t size)
     {
-        char* foo = " ";
-        for(int i = 0; i < size; i++)
+        char *foo = " ";
+        for (int i = 0; i < size; i++)
         {
             foo[0] = data[i];
             printf(foo);
         }
-        
-        
-        
-        if(size > 9
-            && data[0] == 'G'
-            && data[1] == 'E'
-            && data[2] == 'T'
-            && data[3] == ' '
-            && data[4] == '/'
-            && data[5] == ' '
-            && data[6] == 'H'
-            && data[7] == 'T'
-            && data[8] == 'T'
-            && data[9] == 'P'
-        )
+
+        if (size > 9 && data[0] == 'G' && data[1] == 'E' && data[2] == 'T' && data[3] == ' ' && data[4] == '/' && data[5] == ' ' && data[6] == 'H' && data[7] == 'T' && data[8] == 'T' && data[9] == 'P')
         {
-            socket->Send((uint8_t*)"HTTP/1.1 200 OK\r\nServer: MyOS\r\nContent-Type: text/html\r\n\r\n<html><head><title>My Operating System</title></head><body><b>My Operating System</b> http://www.AlgorithMan.de</body></html>\r\n",184);
+            socket->Send((uint8_t *)"HTTP/1.1 200 OK\r\nServer: MyOS\r\nContent-Type: text/html\r\n\r\n<html><head><title>My Operating System</title></head><body><b>My Operating System</b> http://www.AlgorithMan.de</body></html>\r\n", 184);
             socket->Disconnect();
         }
-        
-        
+
         return true;
     }
 };
 
-common::uint32_t fork() {
-    common::uint32_t result = 55;
-    asm volatile("int $0x80" : "=a" (result) : "a" (1));  // System call number 1 for fork()
-    // asm("int $0x80" : : "a" (3));
-    // asm("int $0x80" : : "a" (1));
-    return result;
-}
-
-void sysprintf(char* str)
+void sysprintf(char *str)
 {
-    asm("int $0x80" : : "a" (4), "b" (str));
+    asm("int $0x80" : : "a"(4), "b"(str));
 }
 
 void taskA()
 {
-    while(true)
-        sysprintf("A");
+    int test = -1;
+    int selam;
+    selam = sefa(&test);
+    
+    if(selam==0)
+    {
+        printf("Child");
+        test = 23;
+        printfHex(test);
+        exit();
+    }
+
+    else
+    {
+        waitpid(selam);
+        printf("Parent");
+        test = 31;
+        printfHex(test);
+    }
+    while (true);
+        
 }
 
 void taskB()
 {
-    while(true)
+    while (true)
         sysprintf("B");
 }
-
-
-#define FORK(result) asm volatile("int $0x80" : "=c" (result) : "a" (1));  // System call number 1 for fork()
-
-void taskC(){
-    uint32_t result = 3;  // Define result variable outside the loop
-    uint16_t garb = 6;
-    uint16_t asdf = 6;
-    uint8_t i = 3;
-    
-    // printf("Basliyor...\n");
-    // i = 0;
-    // while (i < 10)
-    // {
-    //     if (i == 5)
-    //     {
-    //         FORK(result);  // Use the macro here
-    //         if (result == 0)  // Child process
-    //         {
-    //             printf("Child Process Started\n");
-    //         }
-    //         else  // Parent process
-    //         {
-    //             printf("Parent Continues\n");
-    //         }
-    //     }
-    //     printfHex(i);
-    //     i++;
-    // }
-
- 
-    // Fork and get pid
-    FORK(result);
-
-    if(result == 0)
-    {
-
-        garb = 3;
-        printf("child ");
-        printfHex16(garb);
-        printfHex16(asdf);
-    }
-    else
-    {
-        printf("parent ");
-        printfHex16(garb);
-        printfHex16(asdf);
-    }
-    
-    printf("slm");
-    printfHex16(garb);
-    while(1);    
-}
-   
-   
-
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
 extern "C" constructor end_ctors;
 extern "C" void callConstructors()
 {
-    for(constructor* i = &start_ctors; i != &end_ctors; i++)
+    for (constructor *i = &start_ctors; i != &end_ctors; i++)
         (*i)();
 }
 
-    
-
-extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot_magic*/)
+extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot_magic*/)
 {
-    printf("Hello World! --- http://www.AlgorithMan.de\n");
+    printf("Hello World! --- MSC\n");
 
-    
-    
-    uint32_t* memupper = (uint32_t*)(((size_t)multiboot_structure) + 8);
-    size_t heap = 10*1024*1024;
-    MemoryManager memoryManager(heap, (*memupper)*1024 - heap - 10*1024);
-    
-    
-    void* allocated = memoryManager.malloc(1024);
+    GlobalDescriptorTable gdt;
 
-    
-    
-    // Task task1(&gdt, taskA);
-    // Task task3(&gdt, taskB);
-    // taskManager.AddTask(&task1);
-    // taskManager.AddTask(&task3);
-    
+    uint32_t *memupper = (uint32_t *)(((size_t)multiboot_structure) + 8);
+    size_t heap = 10 * 1024 * 1024;
+    MemoryManager memoryManager(heap, (*memupper) * 1024 - heap - 10 * 1024);
 
-   Task task2(&gdt, taskC);
-    taskManager.AddTask(task2);
-    
+    printf("heap: 0x");
+    printfHex((heap >> 24) & 0xFF);
+    printfHex((heap >> 16) & 0xFF);
+    printfHex((heap >> 8) & 0xFF);
+    printfHex((heap) & 0xFF);
+
+    void *allocated = memoryManager.malloc(1024);
+    printf("\nallocated: 0x");
+    printfHex(((size_t)allocated >> 24) & 0xFF);
+    printfHex(((size_t)allocated >> 16) & 0xFF);
+    printfHex(((size_t)allocated >> 8) & 0xFF);
+    printfHex(((size_t)allocated) & 0xFF);
+    printf("\n");
+
+    TaskManager taskManager;
+
+    Task task1(&gdt, taskA);
+    // Task task2(&gdt, taskB);
+    taskManager.AddTask(&task1);
+    // taskManager.AddTask(&task2);
+
     InterruptManager interrupts(0x20, &gdt, &taskManager);
     SyscallHandler syscalls(&interrupts, 0x80);
-     interrupts.Activate();
-     while(1);
-    
-    
-    #ifdef GRAPHICSMODE
-        Desktop desktop(320,200, 0x00,0x00,0xA8);
-    #endif
-    
+
     DriverManager drvManager;
-    
-        #ifdef GRAPHICSMODE
-            KeyboardDriver keyboard(&interrupts, &desktop);
-        #else
-            PrintfKeyboardEventHandler kbhandler;
-            KeyboardDriver keyboard(&interrupts, &kbhandler);
-        #endif
-        drvManager.AddDriver(&keyboard);
-        
-    
-        #ifdef GRAPHICSMODE
-            MouseDriver mouse(&interrupts, &desktop);
-        #else
-            MouseToConsole mousehandler;
-            MouseDriver mouse(&interrupts, &mousehandler);
-        #endif
-        drvManager.AddDriver(&mouse);
-        
-        PeripheralComponentInterconnectController PCIController;
-        PCIController.SelectDrivers(&drvManager, &interrupts);
 
-        #ifdef GRAPHICSMODE
-            VideoGraphicsArray vga;
-        #endif
-        
-        drvManager.ActivateAll();
-        
-    #ifdef GRAPHICSMODE
-        vga.SetMode(320,200,8);
-        Window win1(&desktop, 10,10,20,20, 0xA8,0x00,0x00);
-        desktop.AddChild(&win1);
-        Window win2(&desktop, 40,15,30,30, 0x00,0xA8,0x00);
-        desktop.AddChild(&win2);
-    #endif
+    PrintfKeyboardEventHandler kbhandler;
+    KeyboardDriver keyboard(&interrupts, &kbhandler);
 
+    drvManager.AddDriver(&keyboard);
 
-    /*
-    printf("\nS-ATA primary master: ");
-    AdvancedTechnologyAttachment ata0m(true, 0x1F0);
-    ata0m.Identify();
-    
-    printf("\nS-ATA primary slave: ");
-    AdvancedTechnologyAttachment ata0s(false, 0x1F0);
-    ata0s.Identify();
-    ata0s.Write28(0, (uint8_t*)"http://www.AlgorithMan.de", 25);
-    ata0s.Flush();
-    ata0s.Read28(0, 25);
-    
-    printf("\nS-ATA secondary master: ");
-    AdvancedTechnologyAttachment ata1m(true, 0x170);
-    ata1m.Identify();
-    
-    printf("\nS-ATA secondary slave: ");
-    AdvancedTechnologyAttachment ata1s(false, 0x170);
-    ata1s.Identify();
-    // third: 0x1E8
-    // fourth: 0x168
-    */
-    
+    MouseToConsole mousehandler;
+    MouseDriver mouse(&interrupts, &mousehandler);
 
-                 
+    drvManager.AddDriver(&mouse);
 
-                   
-    amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
+    PeripheralComponentInterconnectController PCIController;
+    PCIController.SelectDrivers(&drvManager, &interrupts);
 
-    
-    // IP Address
-    uint8_t ip1 = 10, ip2 = 0, ip3 = 2, ip4 = 15;
-    uint32_t ip_be = ((uint32_t)ip4 << 24)
-                | ((uint32_t)ip3 << 16)
-                | ((uint32_t)ip2 << 8)
-                | (uint32_t)ip1;
-    eth0->SetIPAddress(ip_be);
-    EtherFrameProvider etherframe(eth0);
-    AddressResolutionProtocol arp(&etherframe);    
+    drvManager.ActivateAll();
 
-    
-    // IP Address of the default gateway
-    uint8_t gip1 = 10, gip2 = 0, gip3 = 2, gip4 = 2;
-    uint32_t gip_be = ((uint32_t)gip4 << 24)
-                   | ((uint32_t)gip3 << 16)
-                   | ((uint32_t)gip2 << 8)
-                   | (uint32_t)gip1;
-    
-    uint8_t subnet1 = 255, subnet2 = 255, subnet3 = 255, subnet4 = 0;
-    uint32_t subnet_be = ((uint32_t)subnet4 << 24)
-                   | ((uint32_t)subnet3 << 16)
-                   | ((uint32_t)subnet2 << 8)
-                   | (uint32_t)subnet1;
-                   
-    InternetProtocolProvider ipv4(&etherframe, &arp, gip_be, subnet_be);
-    InternetControlMessageProtocol icmp(&ipv4);
-    UserDatagramProtocolProvider udp(&ipv4);
-    TransmissionControlProtocolProvider tcp(&ipv4);
-    
-    
-   
+    interrupts.Activate();
 
-    
-    arp.BroadcastMACAddress(gip_be);
-    
-    
-    PrintfTCPHandler tcphandler;
-    TransmissionControlProtocolSocket* tcpsocket = tcp.Listen(1234);
-    tcp.Bind(tcpsocket, &tcphandler);
-    //tcpsocket->Send((uint8_t*)"Hello TCP!", 10);
-
-    
-    //icmp.RequestEchoReply(gip_be);
-    
-    //PrintfUDPHandler udphandler;
-    //UserDatagramProtocolSocket* udpsocket = udp.Connect(gip_be, 1234);
-    //udp.Bind(udpsocket, &udphandler);
-    //udpsocket->Send((uint8_t*)"Hello UDP!", 10);
-    
-    //UserDatagramProtocolSocket* udpsocket = udp.Listen(1234);
-    //udp.Bind(udpsocket, &udphandler);
-
-    
-    while(1)
+    while (1)
     {
-        #ifdef GRAPHICSMODE
-            desktop.Draw(&vga);
-        #endif
     }
 }

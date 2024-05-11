@@ -7,7 +7,6 @@
 
 namespace myos
 {
-    
     struct CPUState
     {
         common::uint32_t eax;
@@ -33,66 +32,65 @@ namespace myos
         common::uint32_t esp;
         common::uint32_t ss;        
     } __attribute__((packed));
-
-    enum TaskState {
-        RUNNING,
-        BLOCKED,
-        READY,
-        TERMINATED
-    };
-
-    struct TaskStateInfo {
-        TaskState state;
-    };
     
+    enum TaskState
+    {
+        TASK_WAITING,
+        TASK_READY,
+        TASK_RUNNING,
+        TASK_TERMINATED
+    };
     
     class Task
     {
-    friend class TaskManager;
-    private:
-        struct TaskStateInfo stateInfo;
-    public:
-    common::uint8_t stack[4096]; // 4 KiB
-        Task(GlobalDescriptorTable *gdt, void entrypoint());
-        Task(Task *parent);
-        Task();
-        int pid;
-        bool forked;
-        CPUState* cpustate;
-        ~Task();
-        common::uint32_t getPid();
-        void setPid(common::uint32_t pid);
-        bool isForked();
-        void setForked(bool forked);
-        GlobalDescriptorTable *gdt;
+        friend class TaskManager;
+        private:
+            static common::uint32_t pIdCounter;
+            common::uint8_t stack[4096]; // 4 KiB
+            common::uint32_t pid = 0;
+            common::uint32_t pPid = 0;
+            // 0 for waiting, 1 for ready, 2 for running
+            TaskState state;
+            common::uint32_t waitPid;
+            CPUState* cpustate;
+
+        public:
+            Task(GlobalDescriptorTable *gdt, void entrypoint());
+            ~Task();
+            Task();
+            common::uint32_t getId();
+
+            //moveto priv
+            bool forked;
     };
-    
-    
+
     class TaskManager
     {
-    private:
-        
-        int numTasks;
-        
-        common::uint32_t nextPid;
-    public:
-    GlobalDescriptorTable *gdt;
-    TaskManager(GlobalDescriptorTable *gdt);
-        TaskManager();
-        int currentTask;
-        Task tasks[256];
-        ~TaskManager();
-        common::uint32_t getEsp();
-        void printAll();
-        bool AddTask(Task task);
-        common::uint32_t Fork(CPUState* cpu, CPUState* parentCpu);
-        int WaitPID();
-        CPUState* Schedule(CPUState* cpustate);
+        private:
+            Task tasks[256];
+            int numTasks;
+            int currentTask;
+
+        public:
+            // void PrintProcessTable();
+            common::uint32_t ForkTask(CPUState *cpustate);
+            common::uint32_t ExecTask(void entrypoint());
+            common::uint32_t AddTask(void entrypoint());
+            common::uint32_t GetPId();
+            bool ExitTask(CPUState *cpustate);
+            bool WaitPID(common::uint32_t pid, CPUState* cpustate);
+            
+            TaskManager();
+            ~TaskManager();
+            bool AddTask(Task *task);
+            CPUState* Schedule(CPUState* cpustate);
+
+            int getIndex(common::uint32_t pid);
+
+
+            // priv geçecek
+            int nextpid;
+
     };
-    
-    
-    
 }
-
-
 #endif

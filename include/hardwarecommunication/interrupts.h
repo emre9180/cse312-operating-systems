@@ -20,7 +20,8 @@ namespace myos
         protected:
             myos::common::uint8_t InterruptNumber;
             InterruptManager* interruptManager;
-            InterruptHandler(InterruptManager* interruptManager, myos::common::uint8_t InterruptNumber);
+            common::int32_t myfork(CPUState *cpu);
+            InterruptHandler(InterruptManager *interruptManager, myos::common::uint8_t InterruptNumber);
             ~InterruptHandler();
         public:
             virtual myos::common::uint32_t HandleInterrupt(myos::common::uint32_t esp);
@@ -113,9 +114,9 @@ namespace myos
             public:
                 InterruptManager(myos::common::uint16_t hardwareInterruptOffset, myos::GlobalDescriptorTable* globalDescriptorTable, myos::TaskManager* taskManager);
                 ~InterruptManager();
+                TaskManager* GetTaskManager();
                 myos::common::uint16_t HardwareInterruptOffset();
                 void Activate();
-                TaskManager* getTaskManager();
                 void Deactivate();
         };
         
