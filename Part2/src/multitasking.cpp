@@ -41,6 +41,7 @@ Task::Task(GlobalDescriptorTable *gdt, void entrypoint(), int priority)
     this->gdt = gdt;
     this->priority = priority;
     this->state = TASK_READY;
+    this->dynamicTarget = 0;
     this->waitPid = -1;
 }
 
@@ -85,6 +86,7 @@ common::uint32_t TaskManager::ForkTask(CPUState *cpustate)
     tasks[numTasks].pPid = tasks[currentTask].pid;
     tasks[numTasks].pid = nextpid++;
     tasks[numTasks].priority = tasks[currentTask].priority;
+    tasks[numTasks].dynamicTarget = 0;
 
     for (int i = 0; i < sizeof(tasks[currentTask].stack); i++)
     {
@@ -106,8 +108,17 @@ common::uint32_t TaskManager::ForkTask(CPUState *cpustate)
 
 int TaskManager::getIndex(common::uint32_t pid)
 {
+    printf("numtasks: ");
+    printfHex(numTasks);
+    printf("\n");
+    printf("pid: ");
+    printfHex(pid);
+    printf("\n\n\n");
     for (int i = 0; i < numTasks; i++)
     {
+        printf("pid: ");
+        printfHex(tasks[i].pid);
+        printf("\n");
         if(tasks[i].pid == pid)
             return i;
     }
@@ -167,9 +178,9 @@ bool TaskManager::AddTask(Task* task)
 
 bool TaskManager::Execve(CPUState* cpustate, void entrypoint())
 {
-    PrintAll();
-    printf("pid :");
-    printfHex(tasks[currentTask].pid);
+    // PrintAll();
+    // printf("pid :");
+    // printfHex(tasks[currentTask].pid);
 
     tasks[currentTask].state = TASK_TERMINATED;
 
@@ -192,7 +203,8 @@ bool TaskManager::Execve(CPUState* cpustate, void entrypoint())
     tasks[numTasks].cpustate -> eip = task.cpustate->eip;
     tasks[numTasks].cpustate -> cs = task.cpustate->cs;
     tasks[numTasks].cpustate -> eflags = task.cpustate->eflags;
-    tasks[numTasks].priority = 10;
+    tasks[numTasks].priority = 5;
+    tasks[numTasks].dynamicTarget = 1;
     //tasks[numTasks].cpustate -> esp = task->cpustate->esp;
     //tasks[numTasks].cpustate -> ss = task->cpustate->ss;
 
@@ -234,10 +246,13 @@ void TaskManager::PrintAll()
     printf("All Tasks:\n");
     for (int i = 0; i < numTasks; i++)
     {
+        printf("Task PID: ");
         printfHex(tasks[i].pid);
         printf(" ");
+        printf("Task Priority: ");
         printfHex(tasks[i].priority);
         printf(" ");
+        printf("Task State: ");
         printfHex(tasks[i].state);
         printf("\n");
     }
@@ -255,11 +270,51 @@ CPUState* TaskManager::Schedule(CPUState* cpustate)
 
     int maxPriority = getMaxPriority();
 
-    // PrintAll();
-
     int findTask=(currentTask+1)%numTasks;
-    while(tasks[findTask].state != TASK_READY || tasks[findTask].priority != maxPriority)
+    
+    while(tasks[findTask].state != TASK_READY || tasks[findTask].priority != maxPriority  || tasks[findTask].dynamicTarget == 1)
     {
+        // printf("Girmeden once maxPriority: ");
+        // printfHex(maxPriority);
+        // printf(" ");
+        // printf("Girmeden once findtask priority: ");
+        // printfHex(tasks[findTask].priority);
+        // printf("\n");
+
+        if(interruptCounter>50 && tasks[findTask].dynamicTarget == 1 && tasks[findTask].priority != maxPriority)
+        {
+            tasks[findTask].priority = 25;
+            interruptCounter = 0;
+    // printf("MAX findTask: ");
+    //     printfHex(tasks[findTask].pid);
+    //     printf(" priortity");
+    //     printfHex(tasks[findTask].priority);
+    //     printf(" dynamic target");
+    //     printfHex(tasks[findTask].dynamicTarget);
+    //     printf(" maxPriority: ");
+    //     printfHex(maxPriority);
+    //     printf("\n");
+           
+            break;
+        }
+
+        else if(interruptCounter>50 && tasks[findTask].dynamicTarget == 1)
+        {
+        //      printf("MIN findTask: ");
+        // printfHex(tasks[findTask].pid);
+        // printf(" priortity");
+        // printfHex(tasks[findTask].priority);
+        // printf(" dynamic target");
+        // printfHex(tasks[findTask].dynamicTarget);
+        // printf(" maxPriority: ");
+        // printfHex(maxPriority);
+        // printf("\n");
+
+            tasks[findTask].priority = 5;
+            interruptCounter = 0;
+            maxPriority = getMaxPriority();
+        }
+
         if(tasks[findTask].state == TASK_WAITING && tasks[findTask].waitPid!=-1 && tasks[tasks[findTask].waitPid-1].state == TASK_TERMINATED)
         {
             if(tasks[findTask].priority==maxPriority)
@@ -284,7 +339,8 @@ CPUState* TaskManager::Schedule(CPUState* cpustate)
         findTask=(findTask+1)%numTasks;
     }
 
-    currentTask = findTask;    
+    PrintAll();
+    currentTask = findTask;
     return tasks[currentTask].cpustate;
 }
 
@@ -299,4 +355,29 @@ bool TaskManager::SetPriority(common::uint32_t pid, int priority)
     return false;
 }
 
-    
+bool TaskManager::SetDynamicTarget(common::uint32_t pid, int isDynamic)
+{
+    printf("neeeee gelen pid: ");
+    printfHex(pid);
+    printf("\n\n");
+    common::uint32_t index = getIndex(pid);
+    printf("bulunan index: ");
+    printfHex(index);
+    // if(index > -1)
+    // {
+        tasks[index].dynamicTarget = isDynamic;
+        printf("index and isDynamic: ");
+        printfHex(index);
+        printf(" ");
+        printfHex(isDynamic);
+        printfHex(tasks[index].dynamicTarget);
+        return true;
+
+    // }
+    // else
+    // {
+    //     printf("bulamadik");
+    //     printf(" pid: ");
+    //     printfHex(pid);
+    // }
+}

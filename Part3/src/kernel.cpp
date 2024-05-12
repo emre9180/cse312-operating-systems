@@ -94,11 +94,92 @@ void printfHex32(uint32_t key)
 class PrintfKeyboardEventHandler : public KeyboardEventHandler
 {
 public:
+    char buffer[1024];
+    int ct;
+    bool isEnterPressed;
     void OnKeyDown(char c)
     {
+        if(c=='\n')
+        {
+            buffer[ct] = 0;
+            if(ct>0)
+            {
+                isEnterPressed = true;
+            }
+            else
+            {
+                isEnterPressed = false;
+            }
+            return;
+        }
         char *foo = " ";
         foo[0] = c;
         printf(foo);
+        this->buffer[ct] = c;
+        ++ct;
+    }
+
+    void printBuffer()
+    {
+        isEnterPressed = false;
+        ct = 0;
+        printf(buffer);
+        // reset buffer
+        for(int i=0;i<1024;i++)
+        {
+            buffer[i] = 0;
+        }
+    }
+
+    // find ct, fill array
+    void getIntegerArray(int *arr, int* ct)
+    {
+        int i = 0;
+        int j = 0;
+        int num = 0;
+        while(buffer[i] != 0)
+        {
+            if(buffer[i] == ' ')
+            {
+                if(num != 0)
+                {
+                    arr[j] = num;
+                    num = 0;
+                    j++;
+                }
+            }
+            else
+            {
+                num = num*10 + (buffer[i] - '0');
+            }
+            i++;
+        }
+        if(num != 0)
+        {
+            arr[j] = num;
+            j++;
+        }
+        *ct = j;
+
+        // reset buffer
+        for(int i=0;i<1024;i++)
+        {
+            buffer[i] = 0;
+        }
+
+        this->ct = 0;
+        this->isEnterPressed = false;
+    }
+
+    bool getEnterPressed()
+    {
+        return isEnterPressed;
+    }
+
+    PrintfKeyboardEventHandler()
+    {
+        ct = 0;
+        isEnterPressed = false;
     }
 };
 
@@ -149,6 +230,7 @@ public:
     }
 };
 
+
 class PrintfTCPHandler : public TransmissionControlProtocolHandler
 {
 public:
@@ -170,6 +252,7 @@ public:
         return true;
     }
 };
+PrintfKeyboardEventHandler kbhandler;
 
 void sysprintf(char *str)
 {
@@ -251,6 +334,83 @@ int binarySearch(int arr[], int n, int x) {
     return -1; // Return -1 if the element is not found
 }
 
+int binarySearch()
+{
+    setPriority(getPid(0), 22);
+    printf("\nGive me the numbers and count number. The last number is the target. ");
+    while(!kbhandler.getEnterPressed())
+    {
+    }
+    printf("\n");
+
+    int ct;
+    int array[25];
+
+    kbhandler.getIntegerArray(array, &ct);
+
+    for(int i=0;i<ct;i++)
+    {
+        printfHex(array[i]);
+        printf(" ");
+    }
+
+    // make the the search according to last element of the element
+    int n = ct;
+    int x = array[ct-1];
+    int low = 0, high = n - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2; // Avoid overflow
+        if (array[mid] == x)
+        {
+            printf("Element found at index: ");
+            printfHex(mid);
+            printf("\n");
+            return mid;
+        }
+        else if (array[mid] < x)
+            low = mid + 1; // Search in the right half
+        else
+            high = mid - 1; // Search in the left half
+        printf("Binary Search Working ");
+    }
+}
+
+int linearSearch()
+{ 
+    setPriority(getPid(0), 25);
+    printf("\nGive me the numbers and count number. The last number is the target. ");
+    while(!kbhandler.getEnterPressed())
+    {
+    }
+    printf("\n");
+
+    int ct;
+    int array[25];
+
+    kbhandler.getIntegerArray(array, &ct);
+
+    for(int i=0;i<ct;i++)
+    {
+        printfHex(array[i]);
+        printf(" ");
+    }
+
+    // make the the search according to last element of the element
+    int n = ct;
+    int x = array[ct-1];
+    for (int i = 0; i < n; i++) {
+        if (array[i] == x)
+        {
+            printf("Element found at index: ");
+            printfHex(i);
+            printf("\n");
+            return i; // Return the index of the element if found
+        }
+        printf("Linear Search Working ");
+    }
+    return -1; // Return -1 if the element is not found
+}
+
 void taskA()
 {
     int test = -1;
@@ -315,6 +475,77 @@ void long_running_program(int n) {
     }
 }
 
+void long_running_program()
+{
+    setPriority(getPid(0), 20);
+    printf("\nGive me the number: ");
+    while(!kbhandler.getEnterPressed())
+    {
+    }
+
+    printf("\n");
+
+    int ct;
+    int array[25];
+
+    kbhandler.getIntegerArray(array, &ct);
+
+    for(int i=0;i<ct;i++)
+    {
+        printfHex(array[i]);
+        printf(" ");
+    }
+    int n = array[0];
+    int result = 0; // Use long long for larger results
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            result += i * j;
+            printf("Long Running Program Working ");;
+        }
+    }
+}
+
+void part3_test()
+{
+    int pid;
+    pid = sefa(&pid);
+
+    if(pid == 0)
+    {
+        taskD();
+        exit();
+    }
+
+    pid = sefa(&pid);
+
+    if(pid == 0)
+    {
+        long_running_program();
+        exit();
+    }
+
+    pid = sefa(&pid);
+
+    if(pid == 0)
+    {
+        binarySearch();
+        exit();
+    }
+
+    pid = sefa(&pid);
+
+    if(pid == 0)
+    {
+        linearSearch();
+        exit();
+    }
+
+
+
+    
+
+    while(1);
+}
 
 
 void TaskV2()
@@ -449,7 +680,7 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
     // Task task3(&gdt, taskF, 2);
     // taskManager.AddTask(&task3);
 
-    Task task4(&gdt, TaskV2, 10);
+    Task task4(&gdt, part3_test, 10);
     taskManager.AddTask(&task4);
 
     InterruptManager interrupts(0x20, &gdt, &taskManager);
@@ -457,7 +688,6 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
 
     DriverManager drvManager;
 
-    PrintfKeyboardEventHandler kbhandler;
     KeyboardDriver keyboard(&interrupts, &kbhandler);
 
     drvManager.AddDriver(&keyboard);

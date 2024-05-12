@@ -108,8 +108,8 @@ uint32_t KeyboardDriver::HandleInterrupt(uint32_t esp)
 
             default:
             {
-                printf("KEYBOARD 0x");
-                printfHex(key);
+                // printf("KEYBOARD 0x");
+                // printfHex(key);
                 break;
             }
         }

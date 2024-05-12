@@ -29,6 +29,7 @@ namespace myos
     void setPriority(int pid, int priority);
     int getInterruptCounter(int *counter);
     int getPid(int *pid);
+    void setDynamicPriority(int pid, int isDynamic);
 
 
 }

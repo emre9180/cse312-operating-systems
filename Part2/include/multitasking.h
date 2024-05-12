@@ -59,6 +59,7 @@ namespace myos
             Task(GlobalDescriptorTable *gdt, void entrypoint(), int priority);
             ~Task();
             Task();
+            int dynamicTarget;
             int priority;
             GlobalDescriptorTable* getGdt();
             common::uint32_t getId();
@@ -86,6 +87,7 @@ namespace myos
             bool WaitPID(common::uint32_t pid, CPUState* cpustate);
             bool Execve(CPUState* cpustate, void entrypoint());
             bool SetPriority(common::uint32_t pid, int priority);
+            bool SetDynamicTarget(common::uint32_t pid, int isDynamic);
             
             TaskManager();
             ~TaskManager();

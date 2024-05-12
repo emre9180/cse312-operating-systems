@@ -184,7 +184,7 @@ void taskB()
 
 void taskD()
 {
-    while(1) sysprintf("D");;
+    while(1) printf("D");;
     for(int i=0;i<1000;i++);
     exit();
     while(1);
@@ -237,6 +237,7 @@ int linearSearch(int arr[], int n, int x) {
 }
 
 int binarySearch(int arr[], int n, int x) {
+    printf("A Binary Search Working!\n");
     int low = 0, high = n - 1;
     while (low <= high) {
         int mid = low + (high - low) / 2; // Avoid overflow
@@ -246,7 +247,6 @@ int binarySearch(int arr[], int n, int x) {
             low = mid + 1; // Search in the right half
         else
             high = mid - 1; // Search in the left half
-        printf("Binary Search Working ");
     }
     return -1; // Return -1 if the element is not found
 }
@@ -281,7 +281,7 @@ void taskA()
 
 // Function to print the Collatz sequence for a given number n
 void printCollatz() {
-    int n = 50;
+    int n = 200;
     int temp_n = n;
     printfHex(n);
     for(int i=0;i<100;i++)
@@ -301,7 +301,7 @@ void printCollatz() {
         // for(int i=0;i<100000000;i++);
     }
     printf("  "); // New line after each sequence
-    exit();
+    return;
 }
 
 
@@ -367,15 +367,276 @@ void TaskV2()
             exit();
         }
     }
-    while(1) {
-    }
+    exit();
 }
 
+void TaskV21()
+{
+    int pid1, pid2, pid3, pid4, pid5, pid6, pid7, pid8, pid9, pid10;
+    int result;
+    pid1 = sefa(&pid1);
+
+    if (pid1 == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = binarySearch(test_array_bs, 10, 5);
+        printf("One of the Binary Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid2 = sefa(&pid2);
+    if (pid2 == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = binarySearch(test_array_bs, 10, 5);
+        printf("One of the Binary Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid3 = sefa(&pid3);
+    if (pid3 == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = binarySearch(test_array_bs, 10, 5);
+        printf("One of the Binary Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid4 = sefa(&pid4);
+    if (pid4 == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = binarySearch(test_array_bs, 10, 5);
+        printf("One of the Binary Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid5 = sefa(&pid5);
+    if (pid5 == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = binarySearch(test_array_bs, 10, 5);
+        printf("One of the Binary Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid6 = sefa(&pid6);
+    if (pid == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = binarySearch(test_array_bs, 10, 5);
+        printf("One of the Binary Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid7 = sefa(&pid7);
+    if (pid7 == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = binarySearch(test_array_bs, 10, 5);
+        printf("One of the Binary Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid8 = sefa(&pid8);
+    if (pid8 == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = binarySearch(test_array_bs, 10, 5);
+        printf("One of the Binary Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid9 = sefa(&pid9);
+    if (pid9 == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = binarySearch(test_array_bs, 10, 5);
+        printf("One of the Binary Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid10 = sefa(&pid10);
+    if (pid10 == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = binarySearch(test_array_bs, 10, 5);
+        printf("One of the Binary Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    waitpid(pid1);
+    waitpid(pid2);
+    waitpid(pid3);
+    waitpid(pid4);
+    waitpid(pid5);
+    waitpid(pid6);
+    waitpid(pid7);
+    waitpid(pid8);
+    waitpid(pid9);
+    waitpid(pid10);
+    printf("STRATEGY-1 TERMINATED!\n");
+    printf("STRATEGY-1 TERMINATED!\n");
+    printf("STRATEGY-1 TERMINATED!\n");
+    printf("STRATEGY-1 TERMINATED!\n");
+    printf("STRATEGY-1 TERMINATED!\n");
+    printf("STRATEGY-1 TERMINATED!\n");
+    printf("STRATEGY-1 TERMINATED!\n");
+    printf("STRATEGY-1 TERMINATED!\n");
+    printf("STRATEGY-1 TERMINATED!\n");
+    printf("STRATEGY-1 TERMINATED!\n");
+    printf("STRATEGY-1 TERMINATED!\n\n\n");
+    exit();
+}
+
+void TaskV22()
+{
+    int pid1, pid2, pid3, pid4, pid5, pid6;
+    int result;
+    pid1 = sefa(&pid1);
+
+    if (pid1 == 0)
+    {
+        // call binary search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = linearSearch(test_array_bs, 10, 5);
+        printf("One of the linear Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid2 = sefa(&pid2);
+    if (pid2 == 0)
+    {
+        // call linear search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = linearSearch(test_array_bs, 10, 5);
+        printf("One of the linear Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid3 = sefa(&pid3);
+    if (pid3 == 0)
+    {
+        // call linear search
+        int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        result = linearSearch(test_array_bs, 10, 5);
+        printf("One of the linear Searches Result: ");
+        printfHex(result);
+        printf("\n");
+        exit();
+    }
+
+    pid4 = sefa(&pid4);
+    if (pid4 == 0)
+    {
+        long_running_program(3);
+        printf("\n");
+        exit();
+    }
+
+    pid5 = sefa(&pid5);
+    if (pid5 == 0)
+    {
+        long_running_program(3);
+        printf("\n");
+        exit();
+    }
+
+    pid6 = sefa(&pid6);
+    if (pid6 == 0)
+    {
+        long_running_program(3);
+        printf("\n");
+        exit();
+    }
+    waitpid(pid1);
+    waitpid(pid2);
+    waitpid(pid3);
+    waitpid(pid4);
+    waitpid(pid5);
+    waitpid(pid6);
+    printf("STRATEGY-2 TERMINATED!\n");
+    printf("STRATEGY-2 TERMINATED!\n");
+    printf("STRATEGY-2 TERMINATED!\n");
+    printf("STRATEGY-2 TERMINATED!\n");
+    printf("STRATEGY-2 TERMINATED!\n");
+    printf("STRATEGY-2 TERMINATED!\n");
+    printf("STRATEGY-2 TERMINATED!\n");
+    exit();
+}
+
+void TaskV24()
+{
+    int pid;
+    pid = sefa(&pid);
+
+    if (pid == 0) {
+        execve(taskD);
+    }
+
+    else
+    {
+        pid = sefa(&pid);
+        
+        if (pid == 0) {
+            while(1) printf("B");
+            exit();
+        }
+
+        pid = sefa(&pid);
+
+        if (pid == 0) {
+            while(1) printf("A");
+            exit();
+        }
+
+        pid = sefa(&pid);
+
+        if (pid == 0) {
+            while(1) printf("C");
+            exit();
+        }
+    }
+    exit();
+}
 
 void init()
 {
-    printf("Init process started.\n");
-    printf("Collatz and long_running_program will be executed by fork operation.\n");
+    printf("Init process started. Microkernels will be started respectively...\n");
 
     int pid;
 
@@ -383,17 +644,11 @@ void init()
 
     if (pid == 0) {
         // Child process
-        printf("Forked and run Collatz.\n");
-        printCollatz();
-        exit();
+        TaskV2();
     } else {
         // Parent process
-        printf("Forked and run long runnning program.\n");
-        long_running_program(1000);
-        printf("Waiting for child process to finish.\n");
-        printfHex(pid);
         waitpid(pid);
-        printf("Child process finished.\n");
+        TaskV24();
     }
 
     while(1);
@@ -449,7 +704,7 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
     // Task task3(&gdt, taskF, 2);
     // taskManager.AddTask(&task3);
 
-    Task task4(&gdt, TaskV2, 10);
+    Task task4(&gdt, TaskV22, 10);
     taskManager.AddTask(&task4);
 
     InterruptManager interrupts(0x20, &gdt, &taskManager);

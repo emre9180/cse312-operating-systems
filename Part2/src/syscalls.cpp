@@ -62,6 +62,11 @@ int myos::getPid(int *pid)
     asm("int $0x80" : "=c"(*pid) : "a"(7));
     return *pid;
 }
+
+void myos::setDynamicPriority(int pid, int isDynamic)
+{
+    asm("int $0x80" :: "a"(8), "b"(pid), "c"(isDynamic));
+}
 uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
 {
     CPUState* cpu = (CPUState*)esp;
@@ -95,6 +100,10 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
             break;
         case 7:
             cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->GetPId();
+            break;
+        case 8:
+            cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->SetDynamicTarget(cpu->ebx, cpu->ecx);
+            asm("int $0x20" : : "a"(cpu));
             break;
         case 11:
             asm("cli");
