@@ -73,6 +73,7 @@ namespace myos
             Task tasks[256];
             int numTasks;
             int currentTask;
+            int interruptCounter;
 
         public:
             // void PrintProcessTable();
@@ -80,9 +81,11 @@ namespace myos
             common::uint32_t ExecTask(void entrypoint());
             common::uint32_t AddTask(void entrypoint());
             common::uint32_t GetPId();
+            common::uint32_t GetInterruptCounter();     
             bool ExitTask(CPUState *cpustate);
             bool WaitPID(common::uint32_t pid, CPUState* cpustate);
             bool Execve(CPUState* cpustate, void entrypoint());
+            bool SetPriority(common::uint32_t pid, int priority);
             
             TaskManager();
             ~TaskManager();
@@ -90,6 +93,9 @@ namespace myos
             CPUState* Schedule(CPUState* cpustate);
             int getMaxPriority();
             int getIndex(common::uint32_t pid);
+
+            void PrintAll();
+
 
 
             // priv geçecek

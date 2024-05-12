@@ -46,6 +46,22 @@ void myos::execve(void entrypoint())
     asm("int $0x80" :: "a"(11), "b"(entrypoint));
 }
 
+void myos::setPriority(int pid, int priority)
+{
+    asm("int $0x80" :: "a"(5), "b"(pid), "c"(priority));
+}
+
+int myos::getInterruptCounter(int *counter)
+{
+    asm("int $0x80" : "=c"(*counter) : "a"(6));
+    return *counter;
+}
+
+int myos::getPid(int *pid)
+{
+    asm("int $0x80" : "=c"(*pid) : "a"(7));
+    return *pid;
+}
 uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
 {
     CPUState* cpu = (CPUState*)esp;
@@ -70,9 +86,20 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
         case 4:
             printf((char*)cpu->ebx);
             break;
-        
+        case 5:
+            cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->SetPriority(cpu->ebx, cpu->ecx);
+            asm("int $0x20" : : "a"(cpu));
+            break;
+        case 6:
+            cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->GetInterruptCounter();
+            break;
+        case 7:
+            cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->GetPId();
+            break;
         case 11:
+            asm("cli");
             cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->Execve(cpu, (void (*)())cpu->ebx);
+            asm("sti");
             asm("int $0x20" : : "a"(cpu));
             break;
             

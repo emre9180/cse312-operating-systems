@@ -41,6 +41,7 @@ Task::Task(GlobalDescriptorTable *gdt, void entrypoint(), int priority)
     this->gdt = gdt;
     this->priority = priority;
     this->state = TASK_READY;
+    this->waitPid = -1;
 }
 
 Task::~Task()
@@ -62,6 +63,7 @@ TaskManager::TaskManager()
     numTasks = 0;
     currentTask = -1;
     nextpid = 1;
+    this->interruptCounter = 0;
 }
 
 TaskManager::~TaskManager()
@@ -165,9 +167,43 @@ bool TaskManager::AddTask(Task* task)
 
 bool TaskManager::Execve(CPUState* cpustate, void entrypoint())
 {
+    PrintAll();
+    printf("pid :");
+    printfHex(tasks[currentTask].pid);
+
     tasks[currentTask].state = TASK_TERMINATED;
+
     Task task(tasks[currentTask].gdt, entrypoint, 20);
-    AddTask(&task);
+    
+    if(numTasks >= 256)
+        return false;
+
+    tasks[numTasks].state = TASK_READY;
+    tasks[numTasks].pid = nextpid++;
+    tasks[numTasks].cpustate = (CPUState*)(tasks[numTasks].stack + 4096 - sizeof(CPUState));
+    
+    tasks[numTasks].cpustate -> eax = task.cpustate->eax;
+    tasks[numTasks].cpustate -> ebx = task.cpustate->ebx; 
+    tasks[numTasks].cpustate -> ecx = task.cpustate->ecx;
+    tasks[numTasks].cpustate -> edx = task.cpustate->edx;
+    tasks[numTasks].cpustate -> esi = task.cpustate->esi;
+    tasks[numTasks].cpustate -> edi = task.cpustate->edi;
+    tasks[numTasks].cpustate -> ebp = task.cpustate->ebp;
+    tasks[numTasks].cpustate -> eip = task.cpustate->eip;
+    tasks[numTasks].cpustate -> cs = task.cpustate->cs;
+    tasks[numTasks].cpustate -> eflags = task.cpustate->eflags;
+    tasks[numTasks].priority = 10;
+    //tasks[numTasks].cpustate -> esp = task->cpustate->esp;
+    //tasks[numTasks].cpustate -> ss = task->cpustate->ss;
+
+    numTasks++;
+
+    PrintAll();
+    printf("pid :");
+    printfHex(tasks[currentTask].pid);
+
+
+    return true;
 }
 
 // WAİT READY RUNING FINSI
@@ -177,14 +213,40 @@ int TaskManager::getMaxPriority()
     int maxPriority = -1;
     for (int i = 0; i < numTasks; i++)
     {
-        if(tasks[i].priority > maxPriority && tasks[i].state == TASK_READY)
+        if(tasks[i].priority >= maxPriority && tasks[i].state != TASK_TERMINATED)
             maxPriority = tasks[i].priority;
     }
     return maxPriority;
 }
 
+common::uint32_t TaskManager::GetPId()
+{
+    return tasks[currentTask].pid;
+}
+
+common::uint32_t TaskManager::GetInterruptCounter()
+{
+    return interruptCounter;
+}
+
+void TaskManager::PrintAll()
+{
+    printf("All Tasks:\n");
+    for (int i = 0; i < numTasks; i++)
+    {
+        printfHex(tasks[i].pid);
+        printf(" ");
+        printfHex(tasks[i].priority);
+        printf(" ");
+        printfHex(tasks[i].state);
+        printf("\n");
+    }
+    printf("\n\n");
+}
+
 CPUState* TaskManager::Schedule(CPUState* cpustate)
 {
+    interruptCounter++;
     if(numTasks <= 0)
         return cpustate;
     
@@ -193,15 +255,17 @@ CPUState* TaskManager::Schedule(CPUState* cpustate)
 
     int maxPriority = getMaxPriority();
 
+    // PrintAll();
+
     int findTask=(currentTask+1)%numTasks;
     while(tasks[findTask].state != TASK_READY || tasks[findTask].priority != maxPriority)
     {
-        if(tasks[findTask].state == TASK_WAITING && tasks[tasks[findTask].waitPid-1].state == TASK_TERMINATED)
+        if(tasks[findTask].state == TASK_WAITING && tasks[findTask].waitPid!=-1 && tasks[tasks[findTask].waitPid-1].state == TASK_TERMINATED)
         {
             if(tasks[findTask].priority==maxPriority)
             {
                 tasks[findTask].state = TASK_READY;
-                tasks[findTask].waitPid = 0;
+                tasks[findTask].waitPid = -1;
                 break;
             }
 
@@ -222,6 +286,17 @@ CPUState* TaskManager::Schedule(CPUState* cpustate)
 
     currentTask = findTask;    
     return tasks[currentTask].cpustate;
+}
+
+bool TaskManager::SetPriority(common::uint32_t pid, int priority)
+{
+    int index = getIndex(pid);
+    if(index > -1)
+    {
+        tasks[index].priority = priority;
+        return true;
+    }
+    return false;
 }
 
     
