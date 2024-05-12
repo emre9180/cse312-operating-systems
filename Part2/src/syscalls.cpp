@@ -46,6 +46,16 @@ void myos::execve(void entrypoint())
     asm("int $0x80" :: "a"(11), "b"(entrypoint));
 }
 
+void myos::execveHigh(void entrypoint())
+{
+    asm("int $0x80" :: "a"(9), "b"(entrypoint));
+}
+
+void myos::execveLow(void entrypoint())
+{
+    asm("int $0x80" :: "a"(10), "b"(entrypoint));
+}
+
 void myos::setPriority(int pid, int priority)
 {
     asm("int $0x80" :: "a"(5), "b"(pid), "c"(priority));
@@ -67,6 +77,8 @@ void myos::setDynamicPriority(int pid, int isDynamic)
 {
     asm("int $0x80" :: "a"(8), "b"(pid), "c"(isDynamic));
 }
+
+
 uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
 {
     CPUState* cpu = (CPUState*)esp;
@@ -103,6 +115,18 @@ uint32_t SyscallHandler::HandleInterrupt(uint32_t esp)
             break;
         case 8:
             cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->SetDynamicTarget(cpu->ebx, cpu->ecx);
+            asm("int $0x20" : : "a"(cpu));
+            break;
+        case 9:
+            asm("cli");
+            cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->ExecveHigh(cpu, (void (*)())cpu->ebx);
+            asm("sti");
+            asm("int $0x20" : : "a"(cpu));
+            break;
+        case 10:
+            asm("cli");
+            cpu->ecx = InterruptHandler::interruptManager->GetTaskManager()->ExecveLow(cpu, (void (*)())cpu->ebx);
+            asm("sti");
             asm("int $0x20" : : "a"(cpu));
             break;
         case 11:

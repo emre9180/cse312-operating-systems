@@ -86,6 +86,8 @@ namespace myos
             bool ExitTask(CPUState *cpustate);
             bool WaitPID(common::uint32_t pid, CPUState* cpustate);
             bool Execve(CPUState* cpustate, void entrypoint());
+            bool ExecveHigh(CPUState* cpustate, void entrypoint());
+            bool ExecveLow(CPUState* cpustate, void entrypoint());
             bool SetPriority(common::uint32_t pid, int priority);
             bool SetDynamicTarget(common::uint32_t pid, int isDynamic);
             

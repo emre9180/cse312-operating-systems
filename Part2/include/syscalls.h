@@ -26,6 +26,8 @@ namespace myos
     void waitpid(int pid);
     void exit();
     void execve(void entrypoint());
+    void execveHigh(void entrypoint());
+    void execveLow(void entrypoint());
     void setPriority(int pid, int priority);
     int getInterruptCounter(int *counter);
     int getPid(int *pid);

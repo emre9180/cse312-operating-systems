@@ -184,7 +184,47 @@ bool TaskManager::Execve(CPUState* cpustate, void entrypoint())
 
     tasks[currentTask].state = TASK_TERMINATED;
 
-    Task task(tasks[currentTask].gdt, entrypoint, 20);
+    Task task(tasks[currentTask].gdt, entrypoint, 10);
+    
+    if(numTasks >= 256)
+        return false;
+
+    tasks[numTasks].state = TASK_READY;
+    tasks[numTasks].pid = nextpid++;
+    tasks[numTasks].cpustate = (CPUState*)(tasks[numTasks].stack + 4096 - sizeof(CPUState));
+    
+    tasks[numTasks].cpustate -> eax = task.cpustate->eax;
+    tasks[numTasks].cpustate -> ebx = task.cpustate->ebx; 
+    tasks[numTasks].cpustate -> ecx = task.cpustate->ecx;
+    tasks[numTasks].cpustate -> edx = task.cpustate->edx;
+    tasks[numTasks].cpustate -> esi = task.cpustate->esi;
+    tasks[numTasks].cpustate -> edi = task.cpustate->edi;
+    tasks[numTasks].cpustate -> ebp = task.cpustate->ebp;
+    tasks[numTasks].cpustate -> eip = task.cpustate->eip;
+    tasks[numTasks].cpustate -> cs = task.cpustate->cs;
+    tasks[numTasks].cpustate -> eflags = task.cpustate->eflags;
+    tasks[numTasks].priority = 10;
+    tasks[numTasks].dynamicTarget = 0;
+    //tasks[numTasks].cpustate -> esp = task->cpustate->esp;
+    //tasks[numTasks].cpustate -> ss = task->cpustate->ss;
+
+    numTasks++;
+
+    PrintAll();
+    printf("pid :");
+    printfHex(tasks[currentTask].pid);
+    return true;
+}
+
+bool TaskManager::ExecveLow(CPUState* cpustate, void entrypoint())
+{
+    // PrintAll();
+    // printf("pid :");
+    // printfHex(tasks[currentTask].pid);
+
+    tasks[currentTask].state = TASK_TERMINATED;
+
+    Task task(tasks[currentTask].gdt, entrypoint, 5);
     
     if(numTasks >= 256)
         return false;
@@ -213,11 +253,48 @@ bool TaskManager::Execve(CPUState* cpustate, void entrypoint())
     PrintAll();
     printf("pid :");
     printfHex(tasks[currentTask].pid);
-
-
     return true;
 }
 
+bool TaskManager::ExecveHigh(CPUState* cpustate, void entrypoint())
+{
+    // PrintAll();
+    // printf("pid :");
+    // printfHex(tasks[currentTask].pid);
+
+    tasks[currentTask].state = TASK_TERMINATED;
+
+    Task task(tasks[currentTask].gdt, entrypoint, 20);
+    
+    if(numTasks >= 256)
+        return false;
+
+    tasks[numTasks].state = TASK_READY;
+    tasks[numTasks].pid = nextpid++;
+    tasks[numTasks].cpustate = (CPUState*)(tasks[numTasks].stack + 4096 - sizeof(CPUState));
+    
+    tasks[numTasks].cpustate -> eax = task.cpustate->eax;
+    tasks[numTasks].cpustate -> ebx = task.cpustate->ebx; 
+    tasks[numTasks].cpustate -> ecx = task.cpustate->ecx;
+    tasks[numTasks].cpustate -> edx = task.cpustate->edx;
+    tasks[numTasks].cpustate -> esi = task.cpustate->esi;
+    tasks[numTasks].cpustate -> edi = task.cpustate->edi;
+    tasks[numTasks].cpustate -> ebp = task.cpustate->ebp;
+    tasks[numTasks].cpustate -> eip = task.cpustate->eip;
+    tasks[numTasks].cpustate -> cs = task.cpustate->cs;
+    tasks[numTasks].cpustate -> eflags = task.cpustate->eflags;
+    tasks[numTasks].priority = 20;
+    tasks[numTasks].dynamicTarget = 1;
+    //tasks[numTasks].cpustate -> esp = task->cpustate->esp;
+    //tasks[numTasks].cpustate -> ss = task->cpustate->ss;
+
+    numTasks++;
+
+    PrintAll();
+    printf("pid :");
+    printfHex(tasks[currentTask].pid);
+    return true;
+}
 // WAİT READY RUNING FINSI
 
 int TaskManager::getMaxPriority()

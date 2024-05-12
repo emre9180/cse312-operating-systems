@@ -94,11 +94,92 @@ void printfHex32(uint32_t key)
 class PrintfKeyboardEventHandler : public KeyboardEventHandler
 {
 public:
+    char buffer[1024];
+    int ct;
+    bool isEnterPressed;
     void OnKeyDown(char c)
     {
+        if(c=='\n')
+        {
+            buffer[ct] = 0;
+            if(ct>0)
+            {
+                isEnterPressed = true;
+            }
+            else
+            {
+                isEnterPressed = false;
+            }
+            return;
+        }
         char *foo = " ";
         foo[0] = c;
         printf(foo);
+        this->buffer[ct] = c;
+        ++ct;
+    }
+
+    void printBuffer()
+    {
+        isEnterPressed = false;
+        ct = 0;
+        printf(buffer);
+        // reset buffer
+        for(int i=0;i<1024;i++)
+        {
+            buffer[i] = 0;
+        }
+    }
+
+    // find ct, fill array
+    void getIntegerArray(int *arr, int* ct)
+    {
+        int i = 0;
+        int j = 0;
+        int num = 0;
+        while(buffer[i] != 0)
+        {
+            if(buffer[i] == ' ')
+            {
+                if(num != 0)
+                {
+                    arr[j] = num;
+                    num = 0;
+                    j++;
+                }
+            }
+            else
+            {
+                num = num*10 + (buffer[i] - '0');
+            }
+            i++;
+        }
+        if(num != 0)
+        {
+            arr[j] = num;
+            j++;
+        }
+        *ct = j;
+
+        // reset buffer
+        for(int i=0;i<1024;i++)
+        {
+            buffer[i] = 0;
+        }
+
+        this->ct = 0;
+        this->isEnterPressed = false;
+    }
+
+    bool getEnterPressed()
+    {
+        return isEnterPressed;
+    }
+
+    PrintfKeyboardEventHandler()
+    {
+        ct = 0;
+        isEnterPressed = false;
     }
 };
 
@@ -170,6 +251,7 @@ public:
         return true;
     }
 };
+    PrintfKeyboardEventHandler kbhandler;
 
 void sysprintf(char *str)
 {
@@ -281,7 +363,7 @@ void taskA()
 
 // Function to print the Collatz sequence for a given number n
 void printCollatz() {
-    int n = 200;
+    int n = 500;
     int temp_n = n;
     printfHex(n);
     for(int i=0;i<100;i++)
@@ -301,7 +383,7 @@ void printCollatz() {
         // for(int i=0;i<100000000;i++);
     }
     printf("  "); // New line after each sequence
-    return;
+    exit();
 }
 
 
@@ -316,59 +398,6 @@ void long_running_program(int n) {
 }
 
 
-
-void TaskV2()
-{
-    int pid;
-    pid = sefa(&pid);
-
-    if (pid == 0) {
-        execve(printCollatz);
-    }
-
-    else
-    {
-        printf("\nChildren:\n");
-        int clockCounter;
-        while(getInterruptCounter(&clockCounter) < 20);
-
-        pid = sefa(&pid);
-        
-        if (pid == 0) {
-            int c_pid;
-            setPriority(getPid(&c_pid), 20);
-            int  child;
-            long_running_program(100);
-            exit();
-        }
-        printf("Parent pid: ");
-        printfHex(getPid(&pid));
-        printf("\n");
-
-        pid = sefa(&pid);
-
-        if (pid == 0) {
-            int c_pid;
-            setPriority(getPid(&c_pid), 20);
-            int  child;
-            int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-            binarySearch(test_array_bs, 10, 5);
-            exit();
-        }
-
-        pid = sefa(&pid);
-
-        if (pid == 0) {
-            int c_pid;
-            setPriority(getPid(&c_pid), 20);
-            int  child;
-            int test_array_ls[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-            linearSearch(test_array_ls, 10, 5);
-            exit();
-        }
-    }
-    exit();
-}
 
 void TaskV21()
 {
@@ -436,7 +465,7 @@ void TaskV21()
     }
 
     pid6 = sefa(&pid6);
-    if (pid == 0)
+    if (pid6 == 0)
     {
         // call binary search
         int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -599,13 +628,67 @@ void TaskV22()
     exit();
 }
 
+void TaskV23()
+{
+    int pid;
+    pid = sefa(&pid);
+
+    if (pid == 0) {
+        execve(printCollatz);
+        exit();
+    }
+
+    else
+    {
+        printf("\nChildren:\n");
+        int clockCounter;
+        while(getInterruptCounter(&clockCounter) < 30);
+
+        pid = sefa(&pid);
+        
+        if (pid == 0) {
+            int c_pid;
+            setPriority(getPid(&c_pid), 20);
+            int  child;
+            long_running_program(50);
+            exit();
+        }
+        printf("Parent pid: ");
+        printfHex(getPid(&pid));
+        printf("\n");
+
+        pid = sefa(&pid);
+
+        if (pid == 0) {
+            int c_pid;
+            setPriority(getPid(&c_pid), 20);
+            int  child;
+            int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+            binarySearch(test_array_bs, 10, 5);
+            exit();
+        }
+
+        pid = sefa(&pid);
+
+        if (pid == 0) {
+            int c_pid;
+            setPriority(getPid(&c_pid), 20);
+            int  child;
+            int test_array_ls[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+            linearSearch(test_array_ls, 10, 5);
+            exit();
+        }
+    }
+    exit();
+}
+
 void TaskV24()
 {
     int pid;
     pid = sefa(&pid);
 
     if (pid == 0) {
-        execve(taskD);
+        execveLow(taskD);
     }
 
     else
@@ -644,14 +727,80 @@ void init()
 
     if (pid == 0) {
         // Child process
-        TaskV2();
-    } else {
-        // Parent process
-        waitpid(pid);
+        TaskV21();
+        exit();
+    } 
+
+    // Parent process
+    waitpid(pid);
+
+    setPriority(getPid(0), 22);
+    printf("\nFirst strategy is completed sucessfuly! If you want to continue to Strategy-2, type something and press enter...\n");
+    while(!kbhandler.getEnterPressed())
+    {
+    }
+    setPriority(getPid(0), 10);
+    printf("\n");
+
+    
+    pid = sefa(&pid);
+
+    if (pid == 0) {
+        // Child process
+        TaskV22();
+        exit();
+    }
+
+    // Parent process
+    waitpid(pid);
+
+    setPriority(getPid(0), 22);
+    printf("\nFirst strategy is completed sucessfuly! If you want to continue to Strategy-2, type something and press enter...\n");
+    while(!kbhandler.getEnterPressed())
+    {
+    }
+    setPriority(getPid(0), 10);
+    printf("\n");
+
+    pid = sefa(&pid);
+
+    if (pid == 0) {
+        // Child process
+        TaskV23();
+        exit();
+    }
+
+    // Parent process
+    waitpid(pid);
+
+    setPriority(getPid(0), 22);
+    printf("\nFirst strategy is completed sucessfuly! If you want to continue to Strategy-3, type something and press enter...\n");
+    while(!kbhandler.getEnterPressed())
+    {
+    }
+    setPriority(getPid(0), 10);
+    printf("\n");
+
+    pid = sefa(&pid);
+
+    if (pid == 0) {
+        // Child process
         TaskV24();
     }
 
-    while(1);
+    // Parent process
+    waitpid(pid);
+
+    setPriority(getPid(0), 22);
+    printf("\nFirst strategy is completed sucessfuly! If you want to continue to Strategy-4, type something and press enter...\n");
+    while(!kbhandler.getEnterPressed())
+    {
+    }
+    setPriority(getPid(0), 10);
+    printf("\n");
+
+    printf("All microkernels are completed. System is shutting down...\n");
+    exit();
 }
 
 typedef void (*constructor)();
@@ -704,7 +853,7 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
     // Task task3(&gdt, taskF, 2);
     // taskManager.AddTask(&task3);
 
-    Task task4(&gdt, TaskV22, 10);
+    Task task4(&gdt, init, 10);
     taskManager.AddTask(&task4);
 
     InterruptManager interrupts(0x20, &gdt, &taskManager);
@@ -712,7 +861,6 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
 
     DriverManager drvManager;
 
-    PrintfKeyboardEventHandler kbhandler;
     KeyboardDriver keyboard(&interrupts, &kbhandler);
 
     drvManager.AddDriver(&keyboard);
