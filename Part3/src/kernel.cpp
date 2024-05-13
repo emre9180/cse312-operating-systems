@@ -289,55 +289,11 @@ void taskF()
     while(1);
 }
 
-void taskDs()
-{
-    sysprintf("D");;
-    for(int i=0;i<1000;i++);
-    exit();
-}
-
-void taskEs()
-{
-    sysprintf("E");
-    for(int i=0;i<1000;i++);
-    exit();
-}
-
-void taskFs()
-{
-    sysprintf("F");
-    for(int i=0;i<1000;i++) ;
-    exit();
-}
-
-int linearSearch(int arr[], int n, int x) {
-    for (int i = 0; i < n; i++) {
-        if (arr[i] == x)
-            return i; // Return the index of the element if found
-        printf("Linear Search Working ");
-    }
-    return -1; // Return -1 if the element is not found
-}
-
-int binarySearch(int arr[], int n, int x) {
-    int low = 0, high = n - 1;
-    while (low <= high) {
-        int mid = low + (high - low) / 2; // Avoid overflow
-        if (arr[mid] == x)
-            return mid; // Return the index of the element if found
-        else if (arr[mid] < x)
-            low = mid + 1; // Search in the right half
-        else
-            high = mid - 1; // Search in the left half
-        printf("Binary Search Working ");
-    }
-    return -1; // Return -1 if the element is not found
-}
 
 int binarySearch()
 {
     setPriority(getPid(0), 22);
-    printf("\nGive me the numbers and count number. The last number is the target. ");
+    printf("\n\nGive me the numbers in sorted order and target. The last number is the target: ");
     while(!kbhandler.getEnterPressed())
     {
     }
@@ -348,11 +304,11 @@ int binarySearch()
 
     kbhandler.getIntegerArray(array, &ct);
 
-    for(int i=0;i<ct;i++)
-    {
-        printfHex(array[i]);
-        printf(" ");
-    }
+    // for(int i=0;i<ct;i++)
+    // {
+    //     printfHex(array[i]);
+    //     printf(" ");
+    // }
 
     // make the the search according to last element of the element
     int n = ct;
@@ -378,7 +334,7 @@ int binarySearch()
 int linearSearch()
 { 
     setPriority(getPid(0), 25);
-    printf("\nGive me the numbers and count number. The last number is the target. ");
+    printf("\n\nGive me the numbers and target. The last number is the target: ");
     while(!kbhandler.getEnterPressed())
     {
     }
@@ -389,11 +345,11 @@ int linearSearch()
 
     kbhandler.getIntegerArray(array, &ct);
 
-    for(int i=0;i<ct;i++)
-    {
-        printfHex(array[i]);
-        printf(" ");
-    }
+    // for(int i=0;i<ct;i++)
+    // {
+    //     printfHex(array[i]);
+    //     printf(" ");
+    // }
 
     // make the the search according to last element of the element
     int n = ct;
@@ -415,7 +371,7 @@ void taskA()
 {
     int test = -1;
     int selam;
-    selam = sefa(&test);
+    selam = fork(&test);
     
     if(selam==0)
     {
@@ -464,21 +420,10 @@ void printCollatz() {
     exit();
 }
 
-
-void long_running_program(int n) {
-    int result = 0; // Use long long for larger results
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            result += i * j;
-            printf("Long Running Program Working ");;
-        }
-    }
-}
-
 void long_running_program()
 {
     setPriority(getPid(0), 20);
-    printf("\nGive me the number: ");
+    printf("\n\nGive me the number: ");
     while(!kbhandler.getEnterPressed())
     {
     }
@@ -490,11 +435,11 @@ void long_running_program()
 
     kbhandler.getIntegerArray(array, &ct);
 
-    for(int i=0;i<ct;i++)
-    {
-        printfHex(array[i]);
-        printf(" ");
-    }
+    // for(int i=0;i<ct;i++)
+    // {
+    //     printfHex(array[i]);
+    //     printf(" ");
+    // }
     int n = array[0];
     int result = 0; // Use long long for larger results
     for (int i = 0; i < n; i++) {
@@ -508,7 +453,7 @@ void long_running_program()
 void part3_test()
 {
     int pid;
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if(pid == 0)
     {
@@ -516,7 +461,7 @@ void part3_test()
         exit();
     }
 
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if(pid == 0)
     {
@@ -524,7 +469,7 @@ void part3_test()
         exit();
     }
 
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if(pid == 0)
     {
@@ -532,7 +477,7 @@ void part3_test()
         exit();
     }
 
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if(pid == 0)
     {
@@ -540,95 +485,9 @@ void part3_test()
         exit();
     }
 
-
-
-    
-
-    while(1);
+    exit();
 }
 
-
-void TaskV2()
-{
-    int pid;
-    pid = sefa(&pid);
-
-    if (pid == 0) {
-        execve(printCollatz);
-    }
-
-    else
-    {
-        printf("\nChildren:\n");
-        int clockCounter;
-        while(getInterruptCounter(&clockCounter) < 20);
-
-        pid = sefa(&pid);
-        
-        if (pid == 0) {
-            int c_pid;
-            setPriority(getPid(&c_pid), 20);
-            int  child;
-            long_running_program(100);
-            exit();
-        }
-        printf("Parent pid: ");
-        printfHex(getPid(&pid));
-        printf("\n");
-
-        pid = sefa(&pid);
-
-        if (pid == 0) {
-            int c_pid;
-            setPriority(getPid(&c_pid), 20);
-            int  child;
-            int test_array_bs[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-            binarySearch(test_array_bs, 10, 5);
-            exit();
-        }
-
-        pid = sefa(&pid);
-
-        if (pid == 0) {
-            int c_pid;
-            setPriority(getPid(&c_pid), 20);
-            int  child;
-            int test_array_ls[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-            linearSearch(test_array_ls, 10, 5);
-            exit();
-        }
-    }
-    while(1) {
-    }
-}
-
-
-void init()
-{
-    printf("Init process started.\n");
-    printf("Collatz and long_running_program will be executed by fork operation.\n");
-
-    int pid;
-
-    pid = sefa(&pid);
-
-    if (pid == 0) {
-        // Child process
-        printf("Forked and run Collatz.\n");
-        printCollatz();
-        exit();
-    } else {
-        // Parent process
-        printf("Forked and run long runnning program.\n");
-        long_running_program(1000);
-        printf("Waiting for child process to finish.\n");
-        printfHex(pid);
-        waitpid(pid);
-        printf("Child process finished.\n");
-    }
-
-    while(1);
-}
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;

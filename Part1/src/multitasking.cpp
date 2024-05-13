@@ -107,7 +107,7 @@ void TaskManager::PrintAll()
         printf("Task PID: ");
         printfHex(tasks[i].pid);
         printf(" ");
-        printf("Task State: ");
+        printf("Task State (0-Blocked, 1-Ready, 3-Terminated): ");
         printfHex(tasks[i].state);
         printf("\n");
     }
@@ -186,22 +186,23 @@ CPUState* TaskManager::Schedule(CPUState* cpustate)
     
     if(currentTask >= 0)
         tasks[currentTask].cpustate = cpustate;
-    // PrintProcessTable();
 
-    int findTask=(currentTask+1)%numTasks;
-    while(tasks[findTask].state != TASK_READY)
+
+    int searchedTask=(currentTask+1)%numTasks;
+    
+    while(tasks[searchedTask].state != TASK_READY)
     {
-        if(tasks[findTask].state == TASK_WAITING && tasks[tasks[findTask].waitPid-1].state == TASK_TERMINATED)
+        if(tasks[searchedTask].state == TASK_WAITING && tasks[tasks[searchedTask].waitPid-1].state == TASK_TERMINATED)
         {
-            tasks[findTask].state = TASK_READY;
-            tasks[findTask].waitPid = 0;
+            tasks[searchedTask].state = TASK_READY;
+            tasks[searchedTask].waitPid = 0;
             break;
         }
-        findTask=(findTask+1)%numTasks;
+        searchedTask=(searchedTask+1)%numTasks;
     }
 
     PrintAll();
-    currentTask = findTask;    
+    currentTask = searchedTask;
     return tasks[currentTask].cpustate;
 }
 

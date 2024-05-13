@@ -337,7 +337,7 @@ void taskA()
 {
     int test = -1;
     int selam;
-    selam = sefa(&test);
+    selam = fork(&test);
     
     if(selam==0)
     {
@@ -403,7 +403,7 @@ void TaskV21()
 {
     int pid1, pid2, pid3, pid4, pid5, pid6, pid7, pid8, pid9, pid10;
     int result;
-    pid1 = sefa(&pid1);
+    pid1 = fork(&pid1);
 
     if (pid1 == 0)
     {
@@ -416,7 +416,7 @@ void TaskV21()
         exit();
     }
 
-    pid2 = sefa(&pid2);
+    pid2 = fork(&pid2);
     if (pid2 == 0)
     {
         // call binary search
@@ -428,7 +428,7 @@ void TaskV21()
         exit();
     }
 
-    pid3 = sefa(&pid3);
+    pid3 = fork(&pid3);
     if (pid3 == 0)
     {
         // call binary search
@@ -440,7 +440,7 @@ void TaskV21()
         exit();
     }
 
-    pid4 = sefa(&pid4);
+    pid4 = fork(&pid4);
     if (pid4 == 0)
     {
         // call binary search
@@ -452,7 +452,7 @@ void TaskV21()
         exit();
     }
 
-    pid5 = sefa(&pid5);
+    pid5 = fork(&pid5);
     if (pid5 == 0)
     {
         // call binary search
@@ -464,7 +464,7 @@ void TaskV21()
         exit();
     }
 
-    pid6 = sefa(&pid6);
+    pid6 = fork(&pid6);
     if (pid6 == 0)
     {
         // call binary search
@@ -476,7 +476,7 @@ void TaskV21()
         exit();
     }
 
-    pid7 = sefa(&pid7);
+    pid7 = fork(&pid7);
     if (pid7 == 0)
     {
         // call binary search
@@ -488,7 +488,7 @@ void TaskV21()
         exit();
     }
 
-    pid8 = sefa(&pid8);
+    pid8 = fork(&pid8);
     if (pid8 == 0)
     {
         // call binary search
@@ -500,7 +500,7 @@ void TaskV21()
         exit();
     }
 
-    pid9 = sefa(&pid9);
+    pid9 = fork(&pid9);
     if (pid9 == 0)
     {
         // call binary search
@@ -512,7 +512,7 @@ void TaskV21()
         exit();
     }
 
-    pid10 = sefa(&pid10);
+    pid10 = fork(&pid10);
     if (pid10 == 0)
     {
         // call binary search
@@ -552,7 +552,7 @@ void TaskV22()
 {
     int pid1, pid2, pid3, pid4, pid5, pid6;
     int result;
-    pid1 = sefa(&pid1);
+    pid1 = fork(&pid1);
 
     if (pid1 == 0)
     {
@@ -565,7 +565,7 @@ void TaskV22()
         exit();
     }
 
-    pid2 = sefa(&pid2);
+    pid2 = fork(&pid2);
     if (pid2 == 0)
     {
         // call linear search
@@ -577,7 +577,7 @@ void TaskV22()
         exit();
     }
 
-    pid3 = sefa(&pid3);
+    pid3 = fork(&pid3);
     if (pid3 == 0)
     {
         // call linear search
@@ -589,7 +589,7 @@ void TaskV22()
         exit();
     }
 
-    pid4 = sefa(&pid4);
+    pid4 = fork(&pid4);
     if (pid4 == 0)
     {
         long_running_program(3);
@@ -597,7 +597,7 @@ void TaskV22()
         exit();
     }
 
-    pid5 = sefa(&pid5);
+    pid5 = fork(&pid5);
     if (pid5 == 0)
     {
         long_running_program(3);
@@ -605,7 +605,7 @@ void TaskV22()
         exit();
     }
 
-    pid6 = sefa(&pid6);
+    pid6 = fork(&pid6);
     if (pid6 == 0)
     {
         long_running_program(3);
@@ -631,7 +631,7 @@ void TaskV22()
 void TaskV23()
 {
     int pid;
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if (pid == 0) {
         execve(printCollatz);
@@ -644,7 +644,7 @@ void TaskV23()
         int clockCounter;
         while(getInterruptCounter(&clockCounter) < 30);
 
-        pid = sefa(&pid);
+        pid = fork(&pid);
         
         if (pid == 0) {
             int c_pid;
@@ -657,7 +657,7 @@ void TaskV23()
         printfHex(getPid(&pid));
         printf("\n");
 
-        pid = sefa(&pid);
+        pid = fork(&pid);
 
         if (pid == 0) {
             int c_pid;
@@ -668,7 +668,7 @@ void TaskV23()
             exit();
         }
 
-        pid = sefa(&pid);
+        pid = fork(&pid);
 
         if (pid == 0) {
             int c_pid;
@@ -685,7 +685,7 @@ void TaskV23()
 void TaskV24()
 {
     int pid;
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if (pid == 0) {
         execveLow(taskD);
@@ -693,21 +693,21 @@ void TaskV24()
 
     else
     {
-        pid = sefa(&pid);
+        pid = fork(&pid);
         
         if (pid == 0) {
             while(1) printf("B");
             exit();
         }
 
-        pid = sefa(&pid);
+        pid = fork(&pid);
 
         if (pid == 0) {
             while(1) printf("A");
             exit();
         }
 
-        pid = sefa(&pid);
+        pid = fork(&pid);
 
         if (pid == 0) {
             while(1) printf("C");
@@ -723,7 +723,7 @@ void init()
 
     int pid;
 
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if (pid == 0) {
         // Child process
@@ -743,7 +743,7 @@ void init()
     printf("\n");
 
     
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if (pid == 0) {
         // Child process
@@ -762,7 +762,7 @@ void init()
     setPriority(getPid(0), 10);
     printf("\n");
 
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if (pid == 0) {
         // Child process
@@ -781,7 +781,7 @@ void init()
     setPriority(getPid(0), 10);
     printf("\n");
 
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if (pid == 0) {
         // Child process
@@ -823,38 +823,25 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
     size_t heap = 10 * 1024 * 1024;
     MemoryManager memoryManager(heap, (*memupper) * 1024 - heap - 10 * 1024);
 
-    // printf("heap: 0x");
-    // printfHex((heap >> 24) & 0xFF);
-    // printfHex((heap >> 16) & 0xFF);
-    // printfHex((heap >> 8) & 0xFF);
-    // printfHex((heap) & 0xFF);
-
     void *allocated = memoryManager.malloc(1024);
-    // printf("\nallocated: 0x");
-    // printfHex(((size_t)allocated >> 24) & 0xFF);
-    // printfHex(((size_t)allocated >> 16) & 0xFF);
-    // printfHex(((size_t)allocated >> 8) & 0xFF);
-    // printfHex(((size_t)allocated) & 0xFF);
-    // printf("\n");
 
     TaskManager taskManager;
 
-    // Task task1(&gdt, init);
-    // taskManager.AddTask(&task1);
-    // Task task2(&gdt, taskB);
-    // taskManager.AddTask(&task2);
 
-    // Task task1(&gdt, taskD, 0);
+    // Task task1(&gdt, TaskV21, 10);
     // taskManager.AddTask(&task1);
 
-    // Task task2(&gdt, taskE, 1);
-    // taskManager.AddTask(&task2);
+    // Task task1(&gdt, TaskV22, 10);
+    // taskManager.AddTask(&task1);
 
-    // Task task3(&gdt, taskF, 2);
-    // taskManager.AddTask(&task3);
+    // Task task1(&gdt, TaskV23, 10);
+    // taskManager.AddTask(&task1);
 
-    Task task4(&gdt, init, 10);
-    taskManager.AddTask(&task4);
+    Task task1(&gdt, TaskV24, 10);
+    taskManager.AddTask(&task1);
+
+    // Task task4(&gdt, init, 10);
+    // taskManager.AddTask(&task4);
 
     InterruptManager interrupts(0x20, &gdt, &taskManager);
     SyscallHandler syscalls(&interrupts, 0x80);

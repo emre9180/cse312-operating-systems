@@ -49,7 +49,6 @@ namespace myos
             common::uint8_t stack[4096]; // 4 KiB
             common::uint32_t pid = 0;
             common::uint32_t pPid = 0;
-            // 0 for waiting, 1 for ready, 2 for running
             TaskState state;
             common::uint32_t waitPid;
             CPUState* cpustate;
@@ -77,7 +76,6 @@ namespace myos
             int interruptCounter;
 
         public:
-            // void PrintProcessTable();
             common::uint32_t ForkTask(CPUState *cpustate);
             common::uint32_t ExecTask(void entrypoint());
             common::uint32_t AddTask(void entrypoint());
@@ -99,10 +97,6 @@ namespace myos
             int getIndex(common::uint32_t pid);
 
             void PrintAll();
-
-
-
-            // priv geçecek
             int nextpid;
 
     };

@@ -20,9 +20,7 @@ namespace myos
 
     };
 
-    void fork();
-    void fork(int *pid);
-    int sefa(int *pid);
+    int fork(int *pid);
     void waitpid(int pid);
     void exit();
     void execve(void entrypoint());

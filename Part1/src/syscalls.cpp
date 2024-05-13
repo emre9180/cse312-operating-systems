@@ -16,16 +16,8 @@ SyscallHandler::~SyscallHandler()
 
 
 void printf(char*);
-void myos::fork()
-{
-    asm("int $0x80" :: "a"(2));
-}
-void myos::fork(int *pid)
-{
-    asm("int $0x80" : "=c"(*pid) : "a"(2));
-}
 
-int myos::sefa(int *pid)
+int myos::fork(int *pid)
 {
     asm("int $0x80" : "=c"(*pid) : "a"(2));
     return *pid;

@@ -176,42 +176,14 @@ void sysprintf(char *str)
     asm("int $0x80" : : "a"(4), "b"(str));
 }
 
-void taskB()
+void printA()
 {
-        sysprintf("B");
-        while(1);
+    printf("A");
+    exit();
+
 }
 
-void taskA()
-{
-    int test = -1;
-    int selam;
-    selam = sefa(&test);
-    
-    if(selam==0)
-    {
-        printf("Child");
-        test = 23;
-        printfHex(test);
-        for(int i=0;i<1000000000;i++);
-        exit();
-    }
 
-    else
-    {
-        waitpid(selam);
-        printf("Parent");
-        test = 31;
-        printfHex(test);
-        execve(taskB);
-    }
-
-    printf("Terminate A");
-    while (true);
-        
-}
-
-// Function to print the Collatz sequence for a given number n
 void printCollatz(int n) {
     int temp_n = n;
     printfHex(n);
@@ -245,49 +217,103 @@ void long_running_program(int n) {
 }
 
 
-void init()
+void ForkTest()
 {
-    printf("Init process started.\n");
-    printf("Collatz and long_running_program will be executed by fork operation.\n");
-
+    int test = -1;
     int pid;
-
-    pid = sefa(&pid);
-
-    if (pid == 0) {
-        // Child process
-        printf("Forked and run Collatz.\n");
-        printCollatz(27);
+    pid = fork(&test);
+    
+    if(pid==0)
+    {
+        printf("Child is started.\n");
+        test = 23;
+        printfHex(test);
+        printf("\n");
+        for(int i=0;i<1000000000;i++);
         exit();
-    } else {
-        // Parent process
-        printf("Forked and run long runnning program.\n");
-        long_running_program(1000);
-        printf("Waiting for child process to finish.\n");
-        printfHex(pid);
-        waitpid(pid);
-        printf("Child process finished.\n");
     }
 
-    while(1);
+    else
+    {
+        // waitpid(pid);
+        printf("Parent is started.\n");
+        test = 31;
+        printfHex(test);
+        printf("\n");
+        // execve(taskB);
+    }
+
+    printf("Parent is terminating...\n");
+    exit();
+        
 }
 
-void TaskV2()
+void WaitPidTest()
 {
+    int test = -1;
     int pid;
-    pid = sefa(&pid);
-
-    if (pid == 0) {
-        // printCollatz();
+    pid = fork(&test);
+    
+    if(pid==0)
+    {
+        printf("Child is started.\n");
+        test = 23;
+        printfHex(test);
+        printf("\n");
+        for(int i=0;i<1000000000;i++);
         exit();
     }
-    while(1);
+
+    else
+    {
+        printf("Wait for child to finish.\n");
+        waitpid(pid);
+        printf("Child is finished, parent is started.\n");
+        test = 31;
+        printfHex(test);
+        printf("\n");
+    }
+
+    printf("Parent is terminating...\n");
+    exit();
+        
+}
+// Function to print the Collatz sequence for a given number n
+
+void ExecveTest()
+{
+    int test = -1;
+    int pid;
+    pid = fork(&test);
+    
+    if(pid==0)
+    {
+        printf("Child is started.\n");
+        test = 23;
+        printfHex(test);
+        printf("\n");
+        for(int i=0;i<1000000000;i++);
+        exit();
+    }
+
+    else
+    {
+        // waitpid(pid);
+        printf("Parent is started.\n");
+        test = 31;
+        printfHex(test);
+        printf("\n");
+        execve(printA);
+    }
+
+    printf("Parent is terminating...\n");
+    exit();
 }
 
 void strategy()
 {
     int pid, pid2, pid3, pid4, pid5, pid6;
-    pid = sefa(&pid);
+    pid = fork(&pid);
 
     if (pid == 0)
     {
@@ -295,7 +321,7 @@ void strategy()
         exit();
     }
 
-    pid2 = sefa(&pid2);
+    pid2 = fork(&pid2);
 
     if (pid2 == 0)
     {
@@ -303,7 +329,7 @@ void strategy()
         exit();
     }
 
-    pid3 = sefa(&pid3);
+    pid3 = fork(&pid3);
 
     if (pid3 == 0)
     {
@@ -311,27 +337,27 @@ void strategy()
         exit();
     }
 
-    pid4 = sefa(&pid4);
+    pid4 = fork(&pid4);
 
     if (pid4 == 0)
     {
-        printCollatz(20);
+        printCollatz(10);
         exit();
     }
 
-    pid5 = sefa(&pid5);
+    pid5 = fork(&pid5);
 
     if (pid5 == 0)
     {
-        printCollatz(20);
+        printCollatz(10);
         exit();
     }
 
-    pid6 = sefa(&pid6);
+    pid6 = fork(&pid6);
 
     if (pid6 == 0)
     {
-        printCollatz(20);
+        printCollatz(10);
         exit();
     }
     
@@ -341,15 +367,6 @@ void strategy()
     waitpid(pid3);
     waitpid(pid2);
     waitpid(pid);
-
-    printf("All processes finished.\n");
-    printf("All processes finished.\n");
-    printf("All processes finished.\n");
-    printf("All processes finished.\n");
-    printf("All processes finished.\n");
-    printf("All processes finished.\n");
-    printf("All processes finished.\n");
-    
 
     exit();
 }
@@ -390,9 +407,16 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
     TaskManager taskManager;
 
     Task task1(&gdt, strategy);
-    // Task task2(&gdt, taskB);
     taskManager.AddTask(&task1);
-    // taskManager.AddTask(&task2);
+
+    // Task task1(&gdt, ForkTest);
+    // taskManager.AddTask(&task1);
+
+    // Task task1(&gdt, ExecveTest);
+    // taskManager.AddTask(&task1);
+
+    // Task task1(&gdt, WaitPidTest);
+    // taskManager.AddTask(&task1);
 
     InterruptManager interrupts(0x20, &gdt, &taskManager);
     SyscallHandler syscalls(&interrupts, 0x80);

@@ -198,10 +198,6 @@ bool TaskManager::Execve(CPUState* cpustate, void entrypoint())
     //tasks[numTasks].cpustate -> ss = task->cpustate->ss;
 
     numTasks++;
-
-    PrintAll();
-    printf("pid :");
-    printfHex(tasks[currentTask].pid);
     return true;
 }
 
@@ -340,42 +336,15 @@ CPUState* TaskManager::Schedule(CPUState* cpustate)
     
     while(tasks[findTask].state != TASK_READY || tasks[findTask].priority != maxPriority  || tasks[findTask].dynamicTarget == 1)
     {
-        // printf("Girmeden once maxPriority: ");
-        // printfHex(maxPriority);
-        // printf(" ");
-        // printf("Girmeden once findtask priority: ");
-        // printfHex(tasks[findTask].priority);
-        // printf("\n");
-
         if(interruptCounter>50 && tasks[findTask].dynamicTarget == 1 && tasks[findTask].priority != maxPriority)
         {
             tasks[findTask].priority = 25;
             interruptCounter = 0;
-    // printf("MAX findTask: ");
-    //     printfHex(tasks[findTask].pid);
-    //     printf(" priortity");
-    //     printfHex(tasks[findTask].priority);
-    //     printf(" dynamic target");
-    //     printfHex(tasks[findTask].dynamicTarget);
-    //     printf(" maxPriority: ");
-    //     printfHex(maxPriority);
-    //     printf("\n");
-           
             break;
         }
 
         else if(interruptCounter>50 && tasks[findTask].dynamicTarget == 1)
         {
-        //      printf("MIN findTask: ");
-        // printfHex(tasks[findTask].pid);
-        // printf(" priortity");
-        // printfHex(tasks[findTask].priority);
-        // printf(" dynamic target");
-        // printfHex(tasks[findTask].dynamicTarget);
-        // printf(" maxPriority: ");
-        // printfHex(maxPriority);
-        // printf("\n");
-
             tasks[findTask].priority = 5;
             interruptCounter = 0;
             maxPriority = getMaxPriority();
@@ -423,27 +392,7 @@ bool TaskManager::SetPriority(common::uint32_t pid, int priority)
 
 bool TaskManager::SetDynamicTarget(common::uint32_t pid, int isDynamic)
 {
-    printf("neeeee gelen pid: ");
-    printfHex(pid);
-    printf("\n\n");
     common::uint32_t index = getIndex(pid);
-    printf("bulunan index: ");
-    printfHex(index);
-    // if(index > -1)
-    // {
-        tasks[index].dynamicTarget = isDynamic;
-        printf("index and isDynamic: ");
-        printfHex(index);
-        printf(" ");
-        printfHex(isDynamic);
-        printfHex(tasks[index].dynamicTarget);
-        return true;
-
-    // }
-    // else
-    // {
-    //     printf("bulamadik");
-    //     printf(" pid: ");
-    //     printfHex(pid);
-    // }
+    tasks[index].dynamicTarget = isDynamic;
+    return true;
 }
