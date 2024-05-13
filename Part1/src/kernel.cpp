@@ -215,7 +215,7 @@ void taskA()
 void printCollatz(int n) {
     int temp_n = n;
     printfHex(n);
-    for(int i=0;i<100;i++)
+    for(int i=0;i<50;i++)
     {
         n = temp_n;
         while (n != 1) {
@@ -240,6 +240,7 @@ void long_running_program(int n) {
         for (int j = 0; j < n; j++) {
             result += i * j;
         }
+        printf("Long running program is running. Please wait...\n");
     }
 }
 
@@ -280,38 +281,77 @@ void TaskV2()
         // printCollatz();
         exit();
     }
-
-    printf("enes ");
-
-    // else
-    // {
-    //     printf("\nChildren:\n");
-    //     for(int i=0;i<1000000000;i++);
-    //     pid = sefa(&pid);
-
-    //     if (pid == 0) {
-    //         execve(taskD);
-    //     }
-
-    //     else
-    //     {
-    //         pid = sefa(&pid);
-
-    //         if (pid == 0) {
-    //             execve(taskE);
-    //         }
-
-    //         else
-    //         {
-    //             pid = sefa(&pid);
-
-    //             if (pid == 0) {
-    //                 execve(taskF);
-    //             }
-    //         }
-    //     }
-    // }
     while(1);
+}
+
+void strategy()
+{
+    int pid, pid2, pid3, pid4, pid5, pid6;
+    pid = sefa(&pid);
+
+    if (pid == 0)
+    {
+        long_running_program(3);
+        exit();
+    }
+
+    pid2 = sefa(&pid2);
+
+    if (pid2 == 0)
+    {
+        long_running_program(3);
+        exit();
+    }
+
+    pid3 = sefa(&pid3);
+
+    if (pid3 == 0)
+    {
+        long_running_program(3);
+        exit();
+    }
+
+    pid4 = sefa(&pid4);
+
+    if (pid4 == 0)
+    {
+        printCollatz(20);
+        exit();
+    }
+
+    pid5 = sefa(&pid5);
+
+    if (pid5 == 0)
+    {
+        printCollatz(20);
+        exit();
+    }
+
+    pid6 = sefa(&pid6);
+
+    if (pid6 == 0)
+    {
+        printCollatz(20);
+        exit();
+    }
+    
+    waitpid(pid6);
+    waitpid(pid5);
+    waitpid(pid4);
+    waitpid(pid3);
+    waitpid(pid2);
+    waitpid(pid);
+
+    printf("All processes finished.\n");
+    printf("All processes finished.\n");
+    printf("All processes finished.\n");
+    printf("All processes finished.\n");
+    printf("All processes finished.\n");
+    printf("All processes finished.\n");
+    printf("All processes finished.\n");
+    
+
+    exit();
 }
 
 typedef void (*constructor)();
@@ -349,7 +389,7 @@ extern "C" void kernelMain(const void *multiboot_structure, uint32_t /*multiboot
 
     TaskManager taskManager;
 
-    Task task1(&gdt, TaskV2);
+    Task task1(&gdt, strategy);
     // Task task2(&gdt, taskB);
     taskManager.AddTask(&task1);
     // taskManager.AddTask(&task2);

@@ -108,17 +108,8 @@ common::uint32_t TaskManager::ForkTask(CPUState *cpustate)
 
 int TaskManager::getIndex(common::uint32_t pid)
 {
-    printf("numtasks: ");
-    printfHex(numTasks);
-    printf("\n");
-    printf("pid: ");
-    printfHex(pid);
-    printf("\n\n\n");
     for (int i = 0; i < numTasks; i++)
     {
-        printf("pid: ");
-        printfHex(tasks[i].pid);
-        printf("\n");
         if(tasks[i].pid == pid)
             return i;
     }
@@ -131,8 +122,6 @@ bool TaskManager::WaitPID(common::uint32_t pid, CPUState* cpu)
     if(index > -1)
     {
         tasks[currentTask].state = TASK_WAITING;
-        printf("waiting for: ");
-        printfHex(pid);
         tasks[currentTask].waitPid = pid;
         return true;
     }

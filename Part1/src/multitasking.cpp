@@ -95,19 +95,23 @@ common::uint32_t TaskManager::ForkTask(CPUState *cpustate)
     tasks[numTasks].cpustate->eip -= 2;
     numTasks++;
     
-    printfHex(tasks[numTasks-1].pid);
     return tasks[numTasks-1].pid;
 }
 
 
-int TaskManager::getIndex(common::uint32_t pid)
+void TaskManager::PrintAll()
 {
+    printf("All Tasks:\n");
     for (int i = 0; i < numTasks; i++)
     {
-        if(tasks[i].pid == pid)
-            return i;
+        printf("Task PID: ");
+        printfHex(tasks[i].pid);
+        printf(" ");
+        printf("Task State: ");
+        printfHex(tasks[i].state);
+        printf("\n");
     }
-    return -1;
+    printf("\n\n");
 }
 
 bool TaskManager::WaitPID(common::uint32_t pid, CPUState* cpu)
@@ -116,8 +120,6 @@ bool TaskManager::WaitPID(common::uint32_t pid, CPUState* cpu)
     if(index > -1)
     {
         tasks[currentTask].state = TASK_WAITING;
-        printf("waiting for: ");
-        printfHex(pid);
         tasks[currentTask].waitPid = pid;
         return true;
     }
@@ -167,7 +169,15 @@ bool TaskManager::Execve(CPUState* cpustate, void entrypoint())
     AddTask(&task);
 }
 
-// WAİT READY RUNING FINSI
+int TaskManager::getIndex(common::uint32_t pid)
+{
+    for (int i = 0; i < numTasks; i++)
+    {
+        if(tasks[i].pid == pid)
+            return i;
+    }
+    return -1;
+}
 
 CPUState* TaskManager::Schedule(CPUState* cpustate)
 {
@@ -187,26 +197,10 @@ CPUState* TaskManager::Schedule(CPUState* cpustate)
             tasks[findTask].waitPid = 0;
             break;
         }
-        {
-            int waitTaskIndex = 0;
-            //waitTaskIndex=getIndex(tasks[findTask].waitPid);
-            if(waitTaskIndex > -1 && tasks[waitTaskIndex].state != TASK_WAITING)
-            {
-                if(tasks[waitTaskIndex].state == TASK_RUNNING)
-                {
-                    tasks[findTask].state = TASK_WAITING;
-                    tasks[findTask].waitPid = 0;
-                }
-                else if (tasks[waitTaskIndex].state == TASK_READY)
-                {
-                    findTask = waitTaskIndex;
-                    continue;
-                }
-            }
-        }
         findTask=(findTask+1)%numTasks;
     }
 
+    PrintAll();
     currentTask = findTask;    
     return tasks[currentTask].cpustate;
 }
