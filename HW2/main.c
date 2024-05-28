@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
         if (write("documents", "test2.txt") == 0)
         {
-            printf("File 'test.txt' successfully written to 'documents' directory in the file system.\n");
+            printf("File 'test2.txt' successfully written to 'documents' directory in the file system.\n");
         }
 
         createFile(fsMemory, "documents", "example2.txt", PERMISSION_READ | PERMISSION_WRITE, "password123");
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 
     // Use the write function to copy a Linux file to the file system
 
-    chmodFile(fsMemory, "documents/example.txt", PERMISSION_READ);
+    chmodFile(fsMemory, "documents/test2.txt", PERMISSION_WRITE);
     printFileDetails("documents", "test2.txt");
     printFileDetails("documents", "example.txt");
 

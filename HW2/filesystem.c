@@ -541,6 +541,14 @@ int write(const char *directoryName, const char *linuxFileName)
         return -1;
     }
 
+    // Check write permission
+    if (!(newEntry->permissions & PERMISSION_WRITE))
+    {
+        fprintf(stderr, "Write permission denied for file: %s\n", fileName);
+        free(linuxFileContent);
+        return -1;
+    }
+
     // Write the content to the new file in our file system
     size_t remainingSize = linuxFileSize;
     uint16_t currentBlock = newEntry->firstBlock;
@@ -608,12 +616,8 @@ int read(const char *filePath, const char *linuxFileName)
         return -1;
     }
 
-    printf("fileName: %s\n", fileName);
-    printf("dirPath: %s\n", dirPath);
-    printf("linuxPath: %s\n", linuxFileName);
-
     DirectoryTable *dir = findDirectory(dirPath);
-    // free(dirPath);
+    free(dirPath);
 
     if (dir == NULL)
     {
@@ -622,12 +626,17 @@ int read(const char *filePath, const char *linuxFileName)
     }
 
     // Find the file in the directory
-    printf("dir: %s\n", dir);
-    printf("fileName: %s\n", fileName);
     DirectoryEntry *fileEntry = findFileInDirectory(dir, fileName);
     if (!fileEntry)
     {
         fprintf(stderr, "File not found: %s\n", fileName);
+        return -1;
+    }
+
+    // Check read permission
+    if (!(fileEntry->permissions & PERMISSION_READ))
+    {
+        fprintf(stderr, "Read permission denied for file: %s\n", fileName);
         return -1;
     }
 
