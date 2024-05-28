@@ -162,18 +162,65 @@ int createFile(char *fsBase, const char *directoryName, const char *fileName, ui
     return 0; // Success
 }
 
-int deleteFile(char *fsBase, const char *fileName)
+int deleteFile(char *fsBase, const char *filePath)
 {
-    for (int i = 0; i < superBlock.rootDirectory.fileCount; i++)
+    // Duplicate the file path to avoid modifying the original
+    char *dirPath = strdup(filePath);
+    if (!dirPath)
     {
-        DirectoryEntry *entry = &superBlock.rootDirectory.entries[i];
+        perror("Failed to allocate memory");
+        return -1;
+    }
+
+    // Find the last occurrence of '/' in the file path
+    char *fileName = strrchr(dirPath, '/');
+    if (!fileName)
+    {
+        fprintf(stderr, "Invalid file path: %s\n", filePath);
+        free(dirPath);
+        return -1;
+    }
+
+    // Split the path into directory and file name
+    *fileName = '\0'; // Terminate the directory path
+    fileName++;       // Move to the file name part
+
+    if (strlen(dirPath) == 0)
+    {
+        fprintf(stderr, "Invalid directory path: %s\n", filePath);
+        free(dirPath);
+        return -1;
+    }
+
+    DirectoryTable *dir = findDirectory(dirPath);
+    free(dirPath);
+
+    if (dir == NULL)
+    {
+        fprintf(stderr, "Directory not found: %s\n", filePath);
+        return -1;
+    }
+
+    // Find the file in the directory
+    for (int i = 0; i < dir->fileCount; i++)
+    {
+        DirectoryEntry *entry = &dir->entries[i];
         char *storedFileName = fsMemoryBase + superBlock.fileNameArea.offset + entry->fileNameOffset;
         if (strncmp(storedFileName, fileName, entry->fileNameLength) == 0)
         {
-            setBlockFree(entry->firstBlock);
-            superBlock.fileNameArea.used -= entry->fileNameLength; // Reclaim space (simplified)
-            memmove(entry, entry + 1, (superBlock.rootDirectory.fileCount - i - 1) * sizeof(DirectoryEntry));
-            superBlock.rootDirectory.fileCount--;
+            // Free the blocks used by the file
+            uint16_t currentBlock = entry->firstBlock;
+            while (currentBlock != 0xFFFF)
+            {
+                uint16_t nextBlock = superBlock.fat.fat[currentBlock];
+                setBlockFree(currentBlock);
+                currentBlock = nextBlock;
+            }
+
+            // Reclaim space (simplified)
+            superBlock.fileNameArea.used -= entry->fileNameLength;
+            memmove(entry, entry + 1, (dir->fileCount - i - 1) * sizeof(DirectoryEntry));
+            dir->fileCount--;
             return 0; // Success
         }
     }
@@ -561,10 +608,6 @@ int read(const char *filePath, const char *linuxFileName)
         return -1;
     }
 
-    // Split the path into directory and file name
-    // *fileName = '\0'; // Terminate the directory path
-    // fileName++;       // Move to the file name part
-
     printf("fileName: %s\n", fileName);
     printf("dirPath: %s\n", dirPath);
     printf("linuxPath: %s\n", linuxFileName);
@@ -651,51 +694,134 @@ DirectoryEntry *findFileInDirectory(DirectoryTable *dir, const char *fileName)
     return NULL;
 }
 
+void printDirectoryContents(DirectoryTable *dir, const char *path)
+{
+    for (int i = 0; i < dir->fileCount; i++)
+    {
+        DirectoryEntry *entry = &dir->entries[i];
+        char *storedFileName = fsMemoryBase + superBlock.fileNameArea.offset + entry->fileNameOffset;
+        char fullPath[256];
+        snprintf(fullPath, sizeof(fullPath), "%s/%s", path, storedFileName);
+
+        if (entry->entryType == FILE_TYPE)
+        {
+            printf("File: %s (Block: %u)\n", fullPath, entry->firstBlock);
+            uint16_t currentBlock = entry->firstBlock;
+            while (currentBlock != 0xFFFF && currentBlock < MAX_BLOCKS)
+            {
+                printf("  Block %u: %s (Next: %u)\n", currentBlock, fullPath, superBlock.fat.fat[currentBlock]);
+                currentBlock = superBlock.fat.fat[currentBlock];
+            }
+        }
+        else if (entry->entryType == DIRECTORY_TYPE)
+        {
+            printf("Directory: %s (Block: %u)\n", fullPath, entry->firstBlock);
+            uint16_t blockNumber = entry->firstBlock;
+            while (blockNumber != 0xFFFF && blockNumber < MAX_BLOCKS)
+            {
+                DirectoryTable *subDir = (DirectoryTable *)(fsMemoryBase + blockNumber * superBlock.blockSize);
+                printDirectoryContents(subDir, fullPath);
+                blockNumber = superBlock.fat.fat[blockNumber];
+            }
+        }
+    }
+}
+
+void countFilesAndDirectories(DirectoryTable *dir, uint16_t *fileCount, uint16_t *dirCount)
+{
+    for (int i = 0; i < dir->fileCount; i++)
+    {
+        DirectoryEntry *entry = &dir->entries[i];
+        if (entry->entryType == FILE_TYPE)
+        {
+            (*fileCount)++;
+        }
+        else if (entry->entryType == DIRECTORY_TYPE)
+        {
+            (*dirCount)++;
+            uint16_t blockNumber = entry->firstBlock;
+            while (blockNumber != 0xFFFF && blockNumber < MAX_BLOCKS)
+            {
+                DirectoryTable *subDir = (DirectoryTable *)(fsMemoryBase + blockNumber * superBlock.blockSize);
+                countFilesAndDirectories(subDir, fileCount, dirCount);
+                blockNumber = superBlock.fat.fat[blockNumber];
+            }
+        }
+    }
+}
+
 void dumpe2fs()
 {
     printf("Filesystem status:\n");
     printf("Block count: %u\n", superBlock.totalBlocks);
     printf("Free blocks: %u\n", superBlock.freeBlocks);
     printf("Block size: %u bytes\n", superBlock.blockSize);
+    printf("First %d blocks are reserved for file system\n", superBlock.dataArea.offset / superBlock.blockSize);
 
     uint16_t fileCount = 0;
     uint16_t dirCount = 0;
 
-    // Iterate over the root directory to count files and directories
-    for (int i = 0; i < superBlock.rootDirectory.fileCount; i++)
-    {
-        DirectoryEntry *entry = &superBlock.rootDirectory.entries[i];
-        if (entry->entryType == FILE_TYPE)
-        {
-            fileCount++;
-        }
-        else if (entry->entryType == DIRECTORY_TYPE)
-        {
-            dirCount++;
-        }
-
-        else
-        {
-            printf("Unknown entry type: %u\n", entry->entryType);
-        }
-    }
+    // Count files and directories starting from the root directory
+    countFilesAndDirectories(&superBlock.rootDirectory, &fileCount, &dirCount);
 
     printf("Number of files: %u\n", fileCount);
     printf("Number of directories: %u\n", dirCount);
 
     printf("Occupied blocks:\n");
+    printDirectoryContents(&superBlock.rootDirectory, "/");
+}
 
-    // Iterate over the root directory to list occupied blocks and file names
-    for (int i = 0; i < superBlock.rootDirectory.fileCount; i++)
+int chmodFile(char *fsBase, const char *filePath, uint16_t newPermissions)
+{
+    // Duplicate the file path to avoid modifying the original
+    char *dirPath = strdup(filePath);
+    if (!dirPath)
     {
-        DirectoryEntry *entry = &superBlock.rootDirectory.entries[i];
-        char *storedFileName = fsMemoryBase + superBlock.fileNameArea.offset + entry->fileNameOffset;
+        perror("Failed to allocate memory");
+        return -1;
+    }
 
-        uint16_t currentBlock = entry->firstBlock;
-        while (currentBlock != 0xFFFF && currentBlock < MAX_BLOCKS)
+    // Find the last occurrence of '/' in the file path
+    char *fileName = strrchr(dirPath, '/');
+    if (!fileName)
+    {
+        fprintf(stderr, "Invalid file path: %s\n", filePath);
+        free(dirPath);
+        return -1;
+    }
+
+    // Split the path into directory and file name
+    *fileName = '\0'; // Terminate the directory path
+    fileName++;       // Move to the file name part
+
+    if (strlen(dirPath) == 0)
+    {
+        fprintf(stderr, "Invalid directory path: %s\n", filePath);
+        free(dirPath);
+        return -1;
+    }
+
+    DirectoryTable *dir = findDirectory(dirPath);
+    free(dirPath);
+
+    if (dir == NULL)
+    {
+        fprintf(stderr, "Directory not found: %s\n", filePath);
+        return -1;
+    }
+
+    // Find the file in the directory
+    for (int i = 0; i < dir->fileCount; i++)
+    {
+        DirectoryEntry *entry = &dir->entries[i];
+        char *storedFileName = fsMemoryBase + superBlock.fileNameArea.offset + entry->fileNameOffset;
+        if (strncmp(storedFileName, fileName, entry->fileNameLength) == 0)
         {
-            printf("Block %u: %s (Next: %u)\n", currentBlock, storedFileName, superBlock.fat.fat[currentBlock]);
-            currentBlock = superBlock.fat.fat[currentBlock];
+            // Update the file permissions
+            entry->permissions = newPermissions;
+            entry->modificationDate = time(NULL); // Update the modification date
+            return 0;                             // Success
         }
     }
+    return -1; // File not found
 }

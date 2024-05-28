@@ -114,5 +114,8 @@ int read(const char *filePath, const char *linuxFileName);
 DirectoryEntry *findFileInDirectory(DirectoryTable *dir, const char *fileName);
 
 void dumpe2fs();
+void printDirectoryContents(DirectoryTable *dir, const char *path);
+void countFilesAndDirectories(DirectoryTable *dir, uint16_t *fileCount, uint16_t *dirCount);
+int chmodFile(char *fsBase, const char *filePath, uint16_t newPermissions);
 
 #endif // FILESYSTEM_H

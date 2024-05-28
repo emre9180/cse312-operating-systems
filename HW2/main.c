@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         // Initialize a new file system
         initializeFileSystem(blockSize, fsMemory, totalFsSize);
         createDirectory(fsMemory, "documents", PERMISSION_READ | PERMISSION_WRITE, "password123");
-        createFile(fsMemory, "documents", "example.txt", PERMISSION_READ | PERMISSION_WRITE, "password123");
+        createFile(fsMemory, "documents", "example.txt", PERMISSION_WRITE, "password123");
         // createFile(fsMemory, "documents", "test2.txt", PERMISSION_READ | PERMISSION_WRITE, "password123");
         // Save the newly created file system
 
@@ -83,11 +83,13 @@ int main(int argc, char *argv[])
     // Print the details of "documents"
     printDirectoryDetails("documents");
     printf("\n");
-    printFileDetails("documents", "example.txt");
 
     // Use the write function to copy a Linux file to the file system
 
+    chmodFile(fsMemory, "documents/example.txt", PERMISSION_READ);
     printFileDetails("documents", "test2.txt");
+    printFileDetails("documents", "example.txt");
+
     printFileDetails("documents", "example2.txt");
 
     printf("\n");
@@ -95,6 +97,8 @@ int main(int argc, char *argv[])
     {
         printf("File 'documents/example.txt' successfully read to 'copied_linux_file.txt' in the Linux file system.\n");
     }
+
+    // deleteFile(fsMemory, "documents/example.txt");
     // Clean up
     dumpe2fs();
     free(fsMemory);
