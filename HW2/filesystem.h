@@ -94,10 +94,10 @@ extern char *fsMemory;
 void initializeFileSystem(uint16_t blockSize, char *fsBase, int totalFsSize);
 void setBlockFree(uint16_t blockNumber);
 void setBlockUsed(uint16_t blockNumber);
-uint16_t findFreeBlock(char *fsBase);
+uint16_t findFreeBlock();
 
 int createFile(char *fsBase, const char *directoryName, const char *fileName, uint16_t permissions, const char *password);
-int deleteFile(char *fsBase, const char *fileName);
+int deleteFile(const char *fileName);
 void printFileDetails(const char *directoryName, const char *fileName);
 
 int saveFileSystem(const char *fileName);

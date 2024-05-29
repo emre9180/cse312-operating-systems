@@ -68,7 +68,7 @@ void setBlockUsed(uint16_t blockNumber)
     }
 }
 
-uint16_t findFreeBlock(char *fsBase)
+uint16_t findFreeBlock()
 {
     for (int i = 0; i < MAX_BLOCKS; ++i)
     {
@@ -160,7 +160,7 @@ int createFile(char *fsBase, const char *directoryName, const char *fileName, ui
     return 0; // Success
 }
 
-int deleteFile(char *fsBase, const char *filePath)
+int deleteFile(const char *filePath)
 {
     // Duplicate the file path to avoid modifying the original
     char *dirPath = strdup(filePath);
@@ -488,7 +488,7 @@ int deleteDirectoryHelper(char *fsBase, const char *dirName, DirectoryTable *dir
                     char *childFileName = fsMemoryBase + superBlock.fileNameArea.offset + childEntry->fileNameOffset;
                     if (childEntry->entryType == FILE_TYPE)
                     {
-                        deleteFile(fsBase, childFileName);
+                        deleteFile(childFileName);
                     }
                     else if (childEntry->entryType == DIRECTORY_TYPE)
                     {
@@ -522,7 +522,6 @@ int deleteDirectory(char *fsBase, const char *dirName)
 
 DirectoryTable *findDirectoryHelper(DirectoryTable *dirTable, const char *directoryName, DirectoryTable *result)
 {
-    printf("AAAAAAA directory name: %s\n", directoryName);
     if (strcmp(directoryName, "/") == 0) // Root directory
     {
         return &superBlock.rootDirectory;
@@ -534,12 +533,10 @@ DirectoryTable *findDirectoryHelper(DirectoryTable *dirTable, const char *direct
         char *storedFileName = fsMemoryBase + superBlock.fileNameArea.offset + entry->fileNameOffset;
         if (entry->entryType == DIRECTORY_TYPE && strncmp(storedFileName, directoryName, entry->fileNameLength - 1) == 0) // Use entry->fileNameLength - 1 to exclude null terminator
         {
-            printf("stored file name and directryo name and entry file name lgnth: %s %s %d\n", storedFileName, directoryName, entry->fileNameLength);
             uint16_t blockNumber = entry->firstBlock;
 
             // get the last [entry->fileNameLength-1] characters from directoryName, and make a recursive call
             char *nextDirName = directoryName + entry->fileNameLength - 1;
-            printf("next dir name: %s\n", nextDirName);
             return findDirectoryHelper((DirectoryTable *)(fsMemoryBase + blockNumber * superBlock.blockSize), nextDirName, result);
         }
     }
@@ -576,7 +573,6 @@ DirectoryTable *findDirectory(DirectoryTable *dirTable, const char *directoryNam
 int write(const char *directoryName, char *linuxFileName, char *password)
 {
     // Get Linux file permissions
-    printf("write linux file name: %s\n", linuxFileName);
     struct stat fileStat;
     if (stat(linuxFileName, &fileStat) != 0)
     {
@@ -1009,7 +1005,7 @@ void addPassword(char *fsBase, const char *filePath, const char *password)
             // Update the file password
             strncpy(entry->password, password, sizeof(entry->password) - 1);
             entry->modificationDate = time(NULL); // Update the modification date
-            return;                                // Success
+            return;                               // Success
         }
     }
 }

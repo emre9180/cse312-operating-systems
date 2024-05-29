@@ -216,7 +216,7 @@ int main()
 
         else if (strcmp(words[2], "del") == 0)
         {
-            deleteFile(fsMemory, words[3]);
+            deleteFile(words[3]);
         }
 
         else if (strcmp(words[2], "chmod") == 0)
