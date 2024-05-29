@@ -106,10 +106,10 @@ int loadFileSystem(const char *fileName);
 int createDirectory(char *fsBase, const char *dirName, uint16_t permissions, const char *password);
 int deleteDirectory(char *fsBase, const char *dirName);
 void printDirectoryDetails(const char *dirName);
-DirectoryTable *findDirectory(const char *directoryName);
+DirectoryTable *findDirectory(DirectoryTable *dir, const char *directoryName);
 
-int write(const char *directoryName, const char *linuxFileName);
-int read(const char *filePath, const char *linuxFileName);
+int write(const char *directoryName, char *linuxFileName, char *password);
+int read(const char *filePath, const char *linuxFileName, char *password);
 
 DirectoryEntry *findFileInDirectory(DirectoryTable *dir, const char *fileName);
 
@@ -117,5 +117,7 @@ void dumpe2fs();
 void printDirectoryContents(DirectoryTable *dir, const char *path);
 void countFilesAndDirectories(DirectoryTable *dir, uint16_t *fileCount, uint16_t *dirCount);
 int chmodFile(char *fsBase, const char *filePath, uint16_t newPermissions);
+
+void addPassword(char *fsBase, const char *filePath, const char *password);
 
 #endif // FILESYSTEM_H

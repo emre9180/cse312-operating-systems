@@ -6,21 +6,8 @@
 size_t totalFsSize;
 char *fsMemory;
 
-int main(int argc, char *argv[])
+int main()
 {
-    if (argc != 3)
-    {
-        fprintf(stderr, "Usage: %s <blockSize> <fileName>\n", argv[0]);
-        return 1;
-    }
-
-    uint16_t blockSize = (uint16_t)atoi(argv[1]);
-    if (blockSize == 0 || blockSize > BLOCK_SIZE)
-    {
-        fprintf(stderr, "Invalid block size\n");
-        return 1;
-    }
-
     size_t superBlockSize = sizeof(SuperBlock);
     size_t directoryTableSize = sizeof(DirectoryTable);
     size_t freeBlockBitmapSize = sizeof(FreeBlockBitmap);
@@ -40,67 +27,239 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    int loaded = 0;
     // Check if the file exists
-    FILE *file = fopen(argv[2], "rb");
-    if (file)
+    // FILE *file = fopen(argv[2], "rb");
+    // if (file)
+    // {
+    //     fclose(file);
+    //     // Load the existing file system
+    //     if (loadFileSystem(argv[2]) != 0)
+    //     {
+    //         fprintf(stderr, "Failed to load file system from %s\n", argv[2]);
+    //         free(fsMemory);
+    //         return 1;
+    //     }
+    //     printf("File system loaded from %s\n", argv[2]);
+    // }
+    // else
+    // {
+
+    //     // Initialize a new file system
+    //     initializeFileSystem(blockSize, fsMemory, totalFsSize);
+    //     createDirectory(fsMemory, "/documents", PERMISSION_READ | PERMISSION_WRITE, "none");
+    //     createDirectory(fsMemory, "/documents/images", PERMISSION_READ | PERMISSION_WRITE, "none");
+    //     // createDirectory(fsMemory, "/info", PERMISSION_READ | PERMISSION_WRITE, "none");
+    //     // createDirectory(fsMemory, "/asdf", PERMISSION_READ | PERMISSION_WRITE, "none");
+    //     createDirectory(fsMemory, "/documents/audio", PERMISSION_READ | PERMISSION_WRITE, "none");
+    //     // // printDirectoryDetails("/documents/images");
+    //     createFile(fsMemory, "/documents", "example.txt", PERMISSION_WRITE, "none");
+    //     createFile(fsMemory, "/documents/images", "example2.txt", PERMISSION_WRITE, "none");
+    //     printDirectoryDetails("/documents");
+    //     // // // createFile(fsMemory, "documents", "test2.txt", PERMISSION_READ | PERMISSION_WRITE, "none");
+    //     // // // Save the newly created file system
+
+    //     // if (write("/documents/images", "test2.txt") == 0)
+    //     // {
+    //     //     printf("File 'test2.txt' successfully written to 'documents' directory in the file system.\n");
+    //     // }
+
+    //     // if (read("/documents/images/test2.txt", "copied_linux_file.txt") == 0)
+    //     // {
+    //     //     printf("File 'documents/example.txt' successfully read to 'copied_linux_file.txt' in the Linux file system.\n");
+    //     // }
+
+    //     // deleteDirectory(fsMemory, "/documents/images");
+
+    //     // dumpe2fs();
+    //     // createFile(fsMemory, "documents", "example2.txt", PERMISSION_READ | PERMISSION_WRITE, "password123");
+
+    //     if (saveFileSystem(argv[2]) != 0)
+    //     {
+    //         fprintf(stderr, "Failed to save file system to %s\n", argv[2]);
+    //         free(fsMemory);
+    //         return 1;
+    //     }
+
+    //     // printf("New file system created and saved to %s\n", argv[2]);
+    // }
+
+    // // Print the details of "documents"
+    // // printDirectoryDetails("documents");
+    // // printf("\n");
+
+    // // // Use the write function to copy a Linux file to the file system
+
+    // // chmodFile(fsMemory, "documents/test2.txt", PERMISSION_WRITE);
+    // // printFileDetails("documents", "test2.txt");
+    // // printFileDetails("documents", "example.txt");
+
+    // // printFileDetails("documents", "example2.txt");
+
+    // // printf("\n");
+    // // if (read("documents/test2.txt", "copied_linux_file.txt") == 0)
+    // // {
+    // //     printf("File 'documents/example.txt' successfully read to 'copied_linux_file.txt' in the Linux file system.\n");
+    // // }
+
+    // // // deleteFile(fsMemory, "documents/example.txt");
+    // // // Clean up
+    // // dumpe2fs();
+
+    // // Get command from user
+
+    while (1)
     {
-        fclose(file);
-        // Load the existing file system
-        if (loadFileSystem(argv[2]) != 0)
-        {
-            fprintf(stderr, "Failed to load file system from %s\n", argv[2]);
-            free(fsMemory);
-            return 1;
-        }
-        printf("File system loaded from %s\n", argv[2]);
-    }
-    else
-    {
-        // Initialize a new file system
-        initializeFileSystem(blockSize, fsMemory, totalFsSize);
-        createDirectory(fsMemory, "documents", PERMISSION_READ | PERMISSION_WRITE, "password123");
-        createFile(fsMemory, "documents", "example.txt", PERMISSION_WRITE, "password123");
-        // createFile(fsMemory, "documents", "test2.txt", PERMISSION_READ | PERMISSION_WRITE, "password123");
-        // Save the newly created file system
+        char command[100];
+        printf("Enter command: ");
+        fgets(command, sizeof(command), stdin);
 
-        if (write("documents", "test2.txt") == 0)
+        // Split the input into separate words
+        char *token = strtok(command, " ");
+        char *words[6]; // Assuming at most 5 words
+        int wordCount = 0;
+
+        while (token != NULL && wordCount < 6)
         {
-            printf("File 'test2.txt' successfully written to 'documents' directory in the file system.\n");
+            words[wordCount++] = token;
+            token = strtok(NULL, " ");
         }
 
-        createFile(fsMemory, "documents", "example2.txt", PERMISSION_READ | PERMISSION_WRITE, "password123");
-
-        if (saveFileSystem(argv[2]) != 0)
+        if (wordCount > 6 || wordCount < 3)
         {
-            fprintf(stderr, "Failed to save file system to %s\n", argv[2]);
-            free(fsMemory);
-            return 1;
+            printf("Invalid command\n");
+            continue;
         }
 
-        printf("New file system created and saved to %s\n", argv[2]);
+        // remove new line character at the end of the last words
+        words[wordCount - 1][strlen(words[wordCount - 1]) - 1] = '\0';
+
+        // Now you can access the individual words using the words array
+        for (int i = 0; i < wordCount; i++)
+        {
+            // printf("Word %d: %s\n", i + 1, words[i]);
+        }
+
+        // Avaliable commands are: dir, mkdir, rmdir, dumpe2fs, write, read, del, chmod, addpw
+
+        if (strcmp(words[0], "makeFileSystem") == 0)
+        {
+            uint16_t blockSize = (uint16_t)atoi(words[1]);
+            if (blockSize == 0 || blockSize > BLOCK_SIZE)
+            {
+                fprintf(stderr, "Invalid block size\n");
+                return 1;
+            }
+            initializeFileSystem(blockSize, fsMemory, totalFsSize);
+            saveFileSystem(words[2]);
+            printf("File system created and saved to %s\n", words[2]);
+            printf("You can continue to use the file system\n");
+            printf("Available commands are: dir, mkdir, rmdir, dumpe2fs, write, read, del, chmod, addpw\n");
+            printf("Enter 'exit' to exit the program\n");
+            printf("\n");
+            loaded = 0;
+            createDirectory(fsMemory, "/documents", PERMISSION_READ | PERMISSION_WRITE, "none");
+            createDirectory(fsMemory, "/documents/images", PERMISSION_READ | PERMISSION_WRITE, "none");
+            // createDirectory(fsMemory, "/info", PERMISSION_READ | PERMISSION_WRITE, "none");
+            // createDirectory(fsMemory, "/asdf", PERMISSION_READ | PERMISSION_WRITE, "none");
+            createDirectory(fsMemory, "/documents/audio", PERMISSION_READ | PERMISSION_WRITE, "none");
+            // // printDirectoryDetails("/documents/images");
+            createFile(fsMemory, "/documents", "example.txt", PERMISSION_WRITE, "none");
+            createFile(fsMemory, "/documents/images", "example2.txt", PERMISSION_WRITE, "none");
+            dumpe2fs();
+        }
+
+        else
+        {
+            if (!loaded)
+            {
+                loadFileSystem(words[2]);
+                loaded = 1;
+            }
+        }
+
+        if (strcmp(words[2], "dir") == 0)
+        {
+            printDirectoryDetails(words[3]);
+        }
+
+        else if (strcmp(words[2], "mkdir") == 0)
+        {
+            createDirectory(fsMemory, words[3], PERMISSION_READ | PERMISSION_WRITE, "none");
+        }
+
+        else if (strcmp(words[2], "rmdir") == 0)
+        {
+            deleteDirectory(fsMemory, words[3]);
+        }
+
+        else if (strcmp(words[2], "dumpe2fs") == 0)
+        {
+            dumpe2fs();
+        }
+
+        else if (strcmp(words[2], "write") == 0)
+        {
+            if (wordCount == 5)
+                write(words[3], words[4], "none");
+            else
+                write(words[3], words[4], words[5]);
+        }
+
+        else if (strcmp(words[2], "read") == 0)
+        {
+            if (wordCount == 5)
+                read(words[3], words[4], "none");
+            else
+                read(words[3], words[4], words[5]);
+        }
+
+        else if (strcmp(words[2], "del") == 0)
+        {
+            deleteFile(fsMemory, words[3]);
+        }
+
+        else if (strcmp(words[2], "chmod") == 0)
+        {
+            int permissions = 0;
+
+            // Check if read permission is present
+            if (strchr(words[4], 'r') != NULL)
+            {
+                permissions |= PERMISSION_READ;
+            }
+
+            // Check if write permission is present
+            if (strchr(words[4], 'w') != NULL)
+            {
+                permissions |= PERMISSION_WRITE;
+            }
+
+            // // Check if execute permission is present
+            // if (strchr(words[4], 'x') != NULL)
+            // {
+            //     permissions |= PERMISSION_EXECUTE;
+            // }
+
+            chmodFile(fsMemory, words[3], permissions);
+        }
+
+        else if (strcmp(words[2], "addpw") == 0)
+        {
+            addPassword(fsMemory, words[3], words[4]);
+        }
+
+        else if (strcmp(words[2], "exit") == 0)
+        {
+            break;
+        }
+
+        else
+        {
+            printf("Invalid command\n");
+        }
     }
 
-    // Print the details of "documents"
-    printDirectoryDetails("documents");
-    printf("\n");
-
-    // Use the write function to copy a Linux file to the file system
-
-    chmodFile(fsMemory, "documents/test2.txt", PERMISSION_WRITE);
-    printFileDetails("documents", "test2.txt");
-    printFileDetails("documents", "example.txt");
-
-    printFileDetails("documents", "example2.txt");
-
-    printf("\n");
-    if (read("documents/test2.txt", "copied_linux_file.txt") == 0)
-    {
-        printf("File 'documents/example.txt' successfully read to 'copied_linux_file.txt' in the Linux file system.\n");
-    }
-
-    // deleteFile(fsMemory, "documents/example.txt");
-    // Clean up
-    dumpe2fs();
     free(fsMemory);
     return 0;
 }
