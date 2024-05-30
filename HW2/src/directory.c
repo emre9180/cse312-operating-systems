@@ -156,7 +156,6 @@ int deleteDirectoryHelper(char *fsBase, const char *dirName, DirectoryTable *dir
     {
         DirectoryEntry *entry = dir->entries + i;
         char *storedFileName = fsMemoryBase + superBlock.fileNameArea.offset + entry->fileNameOffset;
-        printf("DELDIR stored file name and directory name and entry file name length: %s %s %d\n", storedFileName, dirName, entry->fileNameLength);
 
         if (entry->entryType == DIRECTORY_TYPE && strcmp(storedFileName, dirName) == 0)
         {

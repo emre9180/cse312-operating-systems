@@ -72,8 +72,13 @@ int main(int argc, char *argv[])
         uint16_t blockSize = (uint16_t)atoi(words[1]);
         if (blockSize == 0 || blockSize > BLOCK_SIZE)
         {
-            fprintf(stderr, "Invalid block size\n");
+            fprintf(stderr, "Invalid block size. Allowed block size are only 512 Bytes and 1024 Bytes. Give the input as bytes, not KB or MB\n");
             return 1;
+        }
+
+        if(blockSize!= 512 && blockSize != 1024)
+        {
+            fprintf(stderr, "Invalid block size. Allowed block size are only 512 Bytes and 1024 Bytes. Give the input as bytes, not KB or MB\n");
         }
         initializeFileSystem(blockSize, fsMemory, totalFsSize);
         // strcpy(data, words[2]);
