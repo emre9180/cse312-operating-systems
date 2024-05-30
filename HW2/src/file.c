@@ -114,9 +114,8 @@ int deleteFile(const char *filePath)
         return -1;
     }
 
-    printf("Directory: %s\n", dirPath);
     DirectoryTable *dir = findDirectory(&superBlock.rootDirectory, dirPath);
-    free(dirPath);
+    
 
     if (dir == NULL)
     {
@@ -147,11 +146,44 @@ int deleteFile(const char *filePath)
             return 0; // Success
         }
     }
+    free(dirPath);
     return -1; // File not found
 }
 
 int write(char *directoryName, char *linuxFileName, char *password)
 {
+     // Duplicate the file path to avoid modifying the original
+    char *dirPath = strdup(directoryName);
+    if (!dirPath)
+    {
+        perror("Failed to allocate memory");
+        return -1;
+    }
+
+    // Count how many '/' characters are there in input
+    int count = 0;
+    for (long unsigned int i = 0; i < strlen(dirPath); i++)
+    {
+        if (dirPath[i] == '/')
+        {
+            count++;
+        }
+    }
+
+    // Find the last occurrence of '/' in the file path
+    char *fileName = strrchr(dirPath, '/');
+    if (!fileName)
+    {
+        fprintf(stderr, "Invalid file path: %s\n", directoryName);
+        free(dirPath);
+        return -1;
+    }
+
+    // Split the path into directory and file name
+    *fileName = '\0'; // Terminate the directory path
+    fileName++;       // Move to the file name part
+
+
     // Get Linux file permissions
     struct stat fileStat;
     if (stat(linuxFileName, &fileStat) != 0)
@@ -198,22 +230,24 @@ int write(char *directoryName, char *linuxFileName, char *password)
     fclose(linuxFile);
 
     // Create a new file in the target directory in our file system
-    char *fileName = strrchr(linuxFileName, '/');
-    fileName = fileName ? fileName + 1 : (char *)linuxFileName;
+    // char *fileName = strrchr(linuxFileName, '/');
+    // fileName = fileName ? fileName + 1 : (char *)linuxFileName;
 
     // Find the directory and file entry
-    DirectoryTable *dir = findDirectory(&superBlock.rootDirectory, directoryName);
+    DirectoryTable *dir;
+    if(count!=1)  dir = findDirectory(&superBlock.rootDirectory, dirPath);
+    else dir = &superBlock.rootDirectory;
+
     if (dir == NULL)
     {
-        fprintf(stderr, "Directory not found: %s\n", directoryName);
+        fprintf(stderr, "Directory not found: %s\n", dirPath);
         free(linuxFileContent);
         return -1;
     }
 
-    printf("address of fsMemoryBase: %p\n", fsMemoryBase);
-    if (createFile(fsMemoryBase, directoryName, fileName, permissions, "none") != 0)
+    if (createFile(fsMemoryBase, dirPath, fileName, permissions, "none") != 0)
     {
-        fprintf(stderr, "Failed to create file in directory: %s\n", directoryName);
+        fprintf(stderr, "Failed to create file in directory: %s\n", dirPath);
         free(linuxFileContent);
         return -1;
     }
@@ -223,7 +257,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
     DirectoryEntry *newEntry = findFileInDirectory(dir, fileName);
     if (!newEntry)
     {
-        fprintf(stderr, "Failed to find new file entry in directory: %s\n", directoryName);
+        fprintf(stderr, "Failed to find new file entry in directory: %s\n", dirPath);
         free(linuxFileContent);
         return -1;
     }
@@ -279,7 +313,6 @@ int write(char *directoryName, char *linuxFileName, char *password)
     free(linuxFileContent);
     return 0;
 }
-
 int read(const char *filePath, const char *linuxFileName, char *password)
 {
     // Duplicate the file path to avoid modifying the original
@@ -447,8 +480,6 @@ int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove)
     {
         DirectoryEntry *entry = &dir->entries[i];
         char *storedFileName = fsMemoryBase + superBlock.fileNameArea.offset + entry->fileNameOffset;
-        printf("storedFileName: %s\n", storedFileName);
-        printf("fileName: %s\n", fileName);
         if (strncmp(storedFileName, fileName, entry->fileNameLength) == 0)
         {
             // Update the file permissions based on addOrRemove flag
@@ -503,7 +534,6 @@ void addPassword(const char *filePath, const char *password)
     }
 
     DirectoryTable *dir = findDirectory(&superBlock.rootDirectory, dirPath);
-    free(dirPath);
 
     if (dir == NULL)
     {
@@ -521,7 +551,10 @@ void addPassword(const char *filePath, const char *password)
             // Update the file password
             strncpy(entry->password, password, sizeof(entry->password) - 1);
             entry->modificationDate = time(NULL); // Update the modification date
+            free(dirPath);
             return;                               // Success
         }
     }
+        free(dirPath);
+
 }
