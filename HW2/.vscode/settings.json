@@ -1,6 +1,11 @@
 {
     "files.associations": {
         "stdio.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "stdlib.h": "c",
+        "filesystem.h": "c",
+        "utility.h": "c",
+        "directory.h": "c",
+        "functional": "c"
     }
 }

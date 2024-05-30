@@ -1,17 +1,31 @@
-CC = gcc-13
-CFLAGS = -Wall -Wextra
+# Compiler
+CC := gcc
 
-SRCS = main.c filesystem.c
-OBJS = $(SRCS:.c=.o)
-TARGET = myprogram
+# Directories
+SRC_DIR := src
+OBJ_DIR := object_files
 
+# Source files
+SRCS := $(wildcard $(SRC_DIR)/*.c)
+OBJS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
+
+# Compiler flags
+CFLAGS := -Wall -Wextra
+
+# Target
+TARGET := myprogram
+
+# Default target
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^
-
-%.o: %.c
+# Compile object files
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Link object files to create executable
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $^ -o $@
+
+# Clean
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -rf $(OBJ_DIR)/*.o $(TARGET)
