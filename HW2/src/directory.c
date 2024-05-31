@@ -162,23 +162,30 @@ int deleteDirectoryHelper(char *fsBase, const char *dirName, DirectoryTable *dir
 
             // Recursively delete contents of the directory
             uint16_t blockNumber = entry->firstBlock;
+            int isEmpty = 1;
             while (blockNumber != 0xFFFF)
             {
                 DirectoryTable *dirTable = (DirectoryTable *)(fsMemoryBase + blockNumber * superBlock.blockSize);
                 for (int j = 0; j < dirTable->fileCount; j++)
                 {
                     DirectoryEntry *childEntry = &dirTable->entries[j];
-                    char *childFileName = fsMemoryBase + superBlock.fileNameArea.offset + childEntry->fileNameOffset;
+                    // char *childFileName = fsMemoryBase + superBlock.fileNameArea.offset + childEntry->fileNameOffset;
                     if (childEntry->entryType == FILE_TYPE)
                     {
-                        deleteFile(childFileName);
+                        isEmpty = 0;
                     }
                     else if (childEntry->entryType == DIRECTORY_TYPE)
                     {
-                        deleteDirectoryHelper(fsBase, dirName, dirTable);
+                        isEmpty = 0;
                     }
                 }
                 blockNumber = superBlock.fat.fat[blockNumber];
+            }
+
+            if(isEmpty == 0)
+            {
+                printf("Error while deleting directory: Directory is not empty\n");
+                return -1;
             }
 
             setBlockFree(entry->firstBlock);
@@ -195,6 +202,7 @@ int deleteDirectoryHelper(char *fsBase, const char *dirName, DirectoryTable *dir
             deleteDirectoryHelper(fsBase, dirName, dirTable);
         }
     }
+
     return -1; // Directory not found
 }
 

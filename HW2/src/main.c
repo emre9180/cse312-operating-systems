@@ -144,7 +144,11 @@ int main(int argc, char *argv[])
             printf("Invalid command\n");
             return 0;
         }
-        deleteDirectory(fsMemory, words[3]);
+        int result = deleteDirectory(fsMemory, words[3]);
+        if(result==-1)
+        {
+            printf("Directory not found\n");
+        }
     }
 
     else if (strcmp(words[2], "dumpe2fs") == 0)
