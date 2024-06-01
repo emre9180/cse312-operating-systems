@@ -15,13 +15,13 @@ void printDirectoryDetails(char *dirName)
         dir = findDirectory(&superBlock.rootDirectory, dirName);
 
 
-    if (dir == NULL || (strlen(dirName) == 1 && dir != &superBlock.rootDirectory))
+    if (dir == NULL || (strlen(dirName) != 1 && dir == &superBlock.rootDirectory))
     {
         printf("Directory not found: %s\n", dirName);
         return;
     }
 
-    // printf("Directory Name: %s\n", dirName);
+    printf("Content of %s:\n", dirName);
     // printf("Dir File Count: %d\n", dir->fileCount);
     for (int i = 0; i < dir->fileCount; i++)
     {

@@ -120,6 +120,7 @@ int deleteFile(const char *filePath)
     if (dir == NULL)
     {
         fprintf(stderr, "Directory not found: %s\n", filePath);
+        free(dirPath);
         return -1;
     }
 
@@ -143,9 +144,11 @@ int deleteFile(const char *filePath)
             superBlock.fileNameArea.used -= entry->fileNameLength;
             memmove(entry, entry + 1, (dir->fileCount - i - 1) * sizeof(DirectoryEntry));
             dir->fileCount--;
+            free(dirPath);
             return 0; // Success
         }
     }
+    printf("File not found: %s\n", fileName);
     free(dirPath);
     return -1; // File not found
 }
@@ -202,6 +205,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
     if (!linuxFile)
     {
         perror("Failed to open Linux file for reading");
+        free(dirPath);
         return -1;
     }
 
@@ -216,6 +220,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
     {
         perror("Failed to allocate memory for Linux file content");
         fclose(linuxFile);
+        free(dirPath);
         return -1;
     }
 
@@ -224,6 +229,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
     {
         perror("Failed to read complete Linux file");
         free(linuxFileContent);
+        free(dirPath);
         fclose(linuxFile);
         return -1;
     }
@@ -238,10 +244,19 @@ int write(char *directoryName, char *linuxFileName, char *password)
     if(count!=1)  dir = findDirectory(&superBlock.rootDirectory, dirPath);
     else dir = &superBlock.rootDirectory;
 
+    if(count!=1 && dir == &superBlock.rootDirectory)
+    {
+        fprintf(stderr, "Invalid directory path: %s\n", dirPath);
+        free(linuxFileContent);
+        free(dirPath);
+        return -1;
+    }
+
     if (dir == NULL)
     {
         fprintf(stderr, "Directory not found: %s\n", dirPath);
         free(linuxFileContent);
+        free(dirPath);
         return -1;
     }
 
@@ -249,6 +264,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
     {
         fprintf(stderr, "Failed to create file in directory: %s\n", dirPath);
         free(linuxFileContent);
+        free(dirPath);
         return -1;
     }
 
@@ -259,6 +275,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
     {
         fprintf(stderr, "Failed to find new file entry in directory: %s\n", dirPath);
         free(linuxFileContent);
+        free(dirPath);
         return -1;
     }
 
@@ -267,6 +284,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
     {
         fprintf(stderr, "Write permission denied for file: %s\n", fileName);
         free(linuxFileContent);
+        free(dirPath);
         return -1;
     }
 
@@ -274,6 +292,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
     {
         fprintf(stderr, "You did not provide correct password for file: %s\n", fileName);
         free(linuxFileContent);
+        free(dirPath);
         return -1;
     }
 
@@ -293,6 +312,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
             {
                 fprintf(stderr, "No free blocks available to complete file write\n");
                 free(linuxFileContent);
+                free(dirPath);
                 return -1;
             }
             printf("Allocating block %u -> %u\n", currentBlock, nextBlock);
@@ -311,6 +331,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
     newEntry->modificationDate = time(NULL);
 
     free(linuxFileContent);
+    free(dirPath);
     return 0;
 }
 int read(const char *filePath, const char *linuxFileName, char *password)
@@ -348,6 +369,7 @@ int read(const char *filePath, const char *linuxFileName, char *password)
     if (dir == NULL)
     {
         fprintf(stderr, "Directory not found: %s\n", filePath);
+        free(dirPath);
         return -1;
     }
 
@@ -356,6 +378,7 @@ int read(const char *filePath, const char *linuxFileName, char *password)
     if (!fileEntry)
     {
         fprintf(stderr, "File not found: %s\n", fileName);
+        free(dirPath);
         return -1;
     }
 
@@ -363,12 +386,14 @@ int read(const char *filePath, const char *linuxFileName, char *password)
     if (!(fileEntry->permissions & PERMISSION_READ))
     {
         fprintf(stderr, "Read permission denied for file: %s\n", fileName);
+        free(dirPath);
         return -1;
     }
 
     if (strcmp(fileEntry->password, "none") != 0 && strcmp(fileEntry->password, password) != 0)
     {
         fprintf(stderr, "You did not provide correct password for file: %s\n", fileName);
+        free(dirPath);
         return -1;
     }
 
@@ -377,6 +402,7 @@ int read(const char *filePath, const char *linuxFileName, char *password)
     if (!linuxFile)
     {
         perror("Failed to open Linux file for writing");
+        free(dirPath);
         return -1;
     }
 
@@ -402,6 +428,7 @@ int read(const char *filePath, const char *linuxFileName, char *password)
     if (stat(linuxFileName, &fileStat) != 0)
     {
         perror("Failed to get Linux file status");
+        free(dirPath);
         return -1;
     }
 
@@ -415,6 +442,7 @@ int read(const char *filePath, const char *linuxFileName, char *password)
     if (chmod(linuxFileName, linuxPermissions) != 0)
     {
         perror("Failed to set Linux file permissions");
+        free(dirPath);
         return -1;
     }
     free(dirPath);
@@ -499,6 +527,7 @@ int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove)
             }
         }
     }
+    printf("File not found: %s\n", fileName);
     free(dirPath);
     return -1; // File not found
 }
@@ -555,6 +584,7 @@ void addPassword(const char *filePath, const char *password)
             return;                               // Success
         }
     }
+    printf("File not found: %s\n", fileName);
         free(dirPath);
 
 }

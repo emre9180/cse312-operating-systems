@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
     if (wordCount > 6 || wordCount < 2)
     {
         printf("Invalid command\n");
+        free(fsMemory);
         return 1;
     }
 
@@ -73,6 +74,7 @@ int main(int argc, char *argv[])
         if (blockSize == 0 || blockSize > BLOCK_SIZE)
         {
             fprintf(stderr, "Invalid block size. Allowed block size are only 512 Bytes and 1024 Bytes. Give the input as bytes, not KB or MB\n");
+            free(fsMemory);
             return 1;
         }
 
@@ -103,6 +105,7 @@ int main(int argc, char *argv[])
         // dumpe2fs();
         // loaded = 1;
         saveFileSystem(words[2]);
+        free(fsMemory);
         return 0;
     }
 
@@ -114,6 +117,7 @@ int main(int argc, char *argv[])
     else if(strcmp(words[0], "fileSystemOper") != 0)
     {
         printf("Invalid Command!\n");
+        free(fsMemory);
         return 0;
     }
 
@@ -122,6 +126,8 @@ int main(int argc, char *argv[])
         if(wordCount != 4)
         {
             printf("Invalid command\n");
+            free(fsMemoryBase);
+            free(fsMemory);
             return 0;
         }
         printDirectoryDetails(words[3]);
@@ -132,6 +138,8 @@ int main(int argc, char *argv[])
         if(wordCount != 4)
         {
             printf("Invalid command\n");
+            free(fsMemory);
+            free(fsMemoryBase);
             return 0;
         }
         createDirectory(fsMemory, words[3], PERMISSION_READ | PERMISSION_WRITE, "none");
@@ -142,6 +150,8 @@ int main(int argc, char *argv[])
         if(wordCount != 4)
         {
             printf("Invalid command\n");
+            free(fsMemory);
+            free(fsMemoryBase);
             return 0;
         }
         int result = deleteDirectory(fsMemory, words[3]);
@@ -156,6 +166,8 @@ int main(int argc, char *argv[])
         if(wordCount != 3)
         {
             printf("Invalid command\n");
+            free(fsMemory);
+            free(fsMemoryBase);
             return 0;
         }
         dumpe2fs();
@@ -186,6 +198,8 @@ int main(int argc, char *argv[])
         if(wordCount != 4)
         {
             printf("Invalid command\n");
+            free(fsMemory);
+            free(fsMemoryBase);
             return 0;
         }
         deleteFile(words[3]);
@@ -196,6 +210,8 @@ int main(int argc, char *argv[])
         if(wordCount != 5)
         {
             printf("Invalid command\n");
+            free(fsMemory);
+            free(fsMemoryBase);
             return 0;
         }
 
@@ -233,6 +249,8 @@ int main(int argc, char *argv[])
         if(wordCount != 5)
         {
             printf("Invalid command\n");
+            free(fsMemory);
+            free(fsMemoryBase);
             return 0;
         }
         addPassword(words[3], words[4]);
@@ -240,6 +258,8 @@ int main(int argc, char *argv[])
 
     else if (strcmp(words[2], "exit") == 0)
     {
+        free(fsMemory);
+        free(fsMemoryBase);
         return 0;
     }
 
@@ -250,5 +270,6 @@ int main(int argc, char *argv[])
     
     saveFileSystem(words[1]);
     free(fsMemory);
+    free(fsMemoryBase);
     return 0;
 }
