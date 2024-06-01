@@ -464,7 +464,7 @@ DirectoryEntry *findFileInDirectory(DirectoryTable *dir, const char *fileName)
 }
 
 
-int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove)
+int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove, const char *password)
 {
     // Duplicate the file path to avoid modifying the original
     char *dirPath = strdup(filePath);
@@ -510,6 +510,13 @@ int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove)
         char *storedFileName = fsMemoryBase + superBlock.fileNameArea.offset + entry->fileNameOffset;
         if (strncmp(storedFileName, fileName, entry->fileNameLength) == 0)
         {
+            if (strcmp(entry->password, "none") != 0 && strcmp(entry->password, password) != 0)
+            {
+                fprintf(stderr, "You did not provide correct password for file: %s\n", fileName);
+                free(dirPath);
+                return -1;
+            }
+
             // Update the file permissions based on addOrRemove flag
             if (addOrRemove == 0)
             {
@@ -532,7 +539,7 @@ int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove)
     return -1; // File not found
 }
 
-void addPassword(const char *filePath, const char *password)
+void addPassword(const char *filePath, const char *password, const char *filePassword)
 {
     // Duplicate the file path to avoid modifying the original
     char *dirPath = strdup(filePath);
@@ -577,6 +584,13 @@ void addPassword(const char *filePath, const char *password)
         char *storedFileName = fsMemoryBase + superBlock.fileNameArea.offset + entry->fileNameOffset;
         if (strncmp(storedFileName, fileName, entry->fileNameLength) == 0)
         {
+            if (strcmp(entry->password, "none") != 0 && strcmp(entry->password, filePassword) != 0)
+            {
+                fprintf(stderr, "You did not provide correct password for file: %s\n", fileName);
+                free(dirPath);
+                return;
+            }
+
             // Update the file password
             strncpy(entry->password, password, sizeof(entry->password) - 1);
             entry->modificationDate = time(NULL); // Update the modification date

@@ -67,16 +67,18 @@ DirectoryEntry *findFileInDirectory(DirectoryTable *dir, const char *fileName);
  * @param filePath The path of the file.
  * @param newPermissions The new permissions to set.
  * @param addOrRemove Whether to add or remove the permissions.
+ * @param password The password for the file.
  * @return 0 on success, -1 on failure.
  */
-int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove);
+int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove, const char *password);
 
 /**
  * Adds a password to a file.
  *
  * @param filePath The path of the file.
  * @param password The password to add.
+ * @param newPassword The new password to set.
  */
-void addPassword(const char *filePath, const char *password);
+void addPassword(const char *filePath, const char *password, const char *newPassword);
 
 #endif // FILE_H

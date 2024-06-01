@@ -28,7 +28,7 @@
 
 // File Allocation Table (FAT) structure
 typedef struct {
-    uint16_t fat[FAT_SIZE_BLOCKS * BLOCK_SIZE / sizeof(uint16_t)]; // Size the FAT in terms of 16-bit entries
+    uint16_t fat[MAX_BLOCKS]; // Size the FAT in terms of 16-bit entries
 } FAT;
 
 // Free Block Bitmap structure

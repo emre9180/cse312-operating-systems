@@ -44,9 +44,9 @@ void initializeFileSystem(uint16_t blockSize, char *fsBase, int totalFsSize)
 
     // Setup data area
     superBlock.dataArea.offset = superBlock.fileNameArea.offset + superBlock.fileNameArea.size;
-    superBlock.dataArea.size = (MAX_BLOCKS * blockSize) - superBlock.dataArea.offset;
+    superBlock.dataArea.size = (MAX_BLOCKS * blockSize) - superBlock.fileNameArea.size;
     superBlock.dataArea.blockCount = superBlock.dataArea.size / blockSize;
-
+    
     // Mark system-reserved blocks as used
     for (long unsigned int  i = 0; i < (superBlock.dataArea.offset / blockSize); i++)
     {

@@ -108,13 +108,13 @@ int createDirectory(char *fsBase, const char *dirName, uint16_t permissions, con
         char *lastSlash = strrchr(parentDirName, '/');
         *lastSlash = '\0'; // Terminate the parent directory name
         DirectoryTable *parentDir = findDirectory(&superBlock.rootDirectory, parentDirName);
-        free(parentDirName);
 
         if (parentDir ==  NULL || parentDir == &superBlock.rootDirectory)
         {
             fprintf(stderr, "Parent directory not found: %s\n", parentDirName);
             return -1;
         }
+        free(parentDirName);
 
         if (parentDir->fileCount >= MAX_FILES)
         {

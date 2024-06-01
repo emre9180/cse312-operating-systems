@@ -31,6 +31,8 @@ int main(int argc, char *argv[])
     size_t dataBlocksSize = MAX_BLOCKS * BLOCK_SIZE;
     totalFsSize = superBlockSize + directoryTableSize + freeBlockBitmapSize + fatBytes + fileNameAreaSize + dataBlocksSize;
 
+    
+
     fsMemory = malloc(totalFsSize);
     if (!fsMemory)
     {
@@ -83,27 +85,16 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Invalid block size. Allowed block size are only 512 Bytes and 1024 Bytes. Give the input as bytes, not KB or MB\n");
         }
         initializeFileSystem(blockSize, fsMemory, totalFsSize);
-        // strcpy(data, words[2]);
         printf("File system created and saved to %s\n", words[2]);
+        printf("Total size of superblock: %ld bytes\n", sizeof(SuperBlock));
+        printf("Total size of Root Directory Table: %ld bytes\n", sizeof(DirectoryTable));
+        printf("Total size of Free Block Bitmap: %ld bytes\n", sizeof(FreeBlockBitmap));
+        printf("Total size of FAT: %ld bytes\n", sizeof(FAT));
+        printf("Total size of Data Area (File Name Area + Data Blocks): %ld bytes (%ld MB)\n", (long int)superBlock.fileNameArea.size + superBlock.dataArea.size, ((long int)superBlock.fileNameArea.size + superBlock.dataArea.size)/(1024*1024));
+        long int total_size = (long int)(superBlock.fileNameArea.size + superBlock.dataArea.size)+ sizeof(SuperBlock) + sizeof(DirectoryTable) + sizeof(FreeBlockBitmap) + sizeof(FAT);
+        printf("Total size of File System: %ld bytes\n", total_size);
         printf("Available commands are: dir, mkdir, rmdir, dumpe2fs, write, read, del, chmod, addpw\n");
         printf("\n");
-        // loaded = 0;
-        // createDirectory(fsMemory, "/documents", PERMISSION_READ | PERMISSION_WRITE, "none");
-        // createDirectory(fsMemory, "/documents/images", PERMISSION_READ | PERMISSION_WRITE, "none");
-        // createDirectory(fsMemory, "/documents/audio", PERMISSION_READ | PERMISSION_WRITE, "none");
-        // createFile(fsMemory, "/documents", "example.txt", PERMISSION_WRITE, "none");
-        // // createFile(fsMemory, "/documents/images", "example2.txt", PERMISSION_WRITE, "none");
-        // chmodFile("/documents/example.txt", PERMISSION_READ | PERMISSION_WRITE, 0);
-        
-        // read("/documents/example.txt", "test.txt", "none");
-
-
-        // write("/documents/images/newwrite.txt", "test2.txt", "none");
-        // addPassword("/documents/images/newwrite.txt", "password123");
-        // read("/documents/images/newwrite.txt", "test3.txt", "password1223");
-        // // createDirectory(fsMemory, "/root", PERMISSION_READ | PERMISSION_WRITE, "none");
-        // dumpe2fs();
-        // loaded = 1;
         saveFileSystem(words[2]);
         free(fsMemory);
         return 0;
@@ -207,7 +198,7 @@ int main(int argc, char *argv[])
 
     else if (strcmp(words[2], "chmod") == 0)
     {
-        if(wordCount != 5)
+        if(wordCount != 5 && wordCount != 6)
         {
             printf("Invalid command\n");
             free(fsMemory);
@@ -241,19 +232,26 @@ int main(int argc, char *argv[])
         {
             removeOrAdd = 1;
         }
-        chmodFile(words[3], permissions, removeOrAdd);
+
+        if(wordCount == 5)
+            chmodFile(words[3], permissions, removeOrAdd, "none");
+        if(wordCount == 6)
+            chmodFile(words[3], permissions, removeOrAdd, words[5]);
     }
 
     else if (strcmp(words[2], "addpw") == 0)
     {
-        if(wordCount != 5)
+        if(wordCount != 5 && wordCount != 6)
         {
             printf("Invalid command\n");
             free(fsMemory);
             free(fsMemoryBase);
             return 0;
         }
-        addPassword(words[3], words[4]);
+        if(wordCount == 5)
+            addPassword(words[3], words[4], "none");
+        if(wordCount == 6)
+            addPassword(words[3], words[4], words[5]);
     }
 
     else if (strcmp(words[2], "exit") == 0)
