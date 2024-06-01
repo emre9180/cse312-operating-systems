@@ -17,8 +17,6 @@ int main(int argc, char *argv[])
     char *executableName = argv[0];
     executableName += 2;
 
-
-
     size_t superBlockSize = sizeof(SuperBlock);
     size_t directoryTableSize = sizeof(DirectoryTable);
     size_t freeBlockBitmapSize = sizeof(FreeBlockBitmap);
@@ -26,12 +24,11 @@ int main(int argc, char *argv[])
     size_t fatBits = MAX_BLOCKS * FAT_ENTRY_BITS; // Total bits for FAT12
     size_t fatBytes = (fatBits + 7) / 8;          // Convert bits to bytes, rounding up
 
-    size_t fileNameAreaSize = MAX_FILES * sizeof(DirectoryEntry);
+    size_t fileNameAreaSize = 128 * sizeof(DirectoryEntry);
 
     size_t dataBlocksSize = MAX_BLOCKS * BLOCK_SIZE;
     totalFsSize = superBlockSize + directoryTableSize + freeBlockBitmapSize + fatBytes + fileNameAreaSize + dataBlocksSize;
 
-    
 
     fsMemory = malloc(totalFsSize);
     if (!fsMemory)

@@ -319,6 +319,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
             superBlock.fat.fat[currentBlock] = nextBlock;
             setBlockUsed(nextBlock);
             currentBlock = nextBlock;
+            // increase file count
         }
         else
         {
@@ -334,6 +335,7 @@ int write(char *directoryName, char *linuxFileName, char *password)
     free(dirPath);
     return 0;
 }
+
 int read(const char *filePath, const char *linuxFileName, char *password)
 {
     // Duplicate the file path to avoid modifying the original

@@ -6,6 +6,7 @@
         "filesystem.h": "c",
         "utility.h": "c",
         "directory.h": "c",
-        "functional": "c"
+        "functional": "c",
+        "types.h": "c"
     }
 }

@@ -1,7 +1,7 @@
 #ifndef DIRECTORY_H
 #define DIRECTORY_H
 
-#define MAX_FILES 128 // Maximum number of files in a directory
+#define MAX_FILES 15 // Maximum number of files in a directory
 #define MAX_BLOCKS 4096 // 4 MB file system
 
 #include <stdio.h>

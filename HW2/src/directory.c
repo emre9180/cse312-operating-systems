@@ -72,82 +72,62 @@ int createDirectory(char *fsBase, const char *dirName, uint16_t permissions, con
         }
     }
 
+    DirectoryEntry *newEntry;
+    DirectoryTable *targetDirectory;
+
     if (depth == 1)
     {
-        DirectoryEntry *newEntry = &superBlock.rootDirectory.entries[superBlock.rootDirectory.fileCount];
-        superBlock.rootDirectory.fileCount++;
-
-        newEntry->entryType = DIRECTORY_TYPE;
-        newEntry->fileNameOffset = superBlock.fileNameArea.used;
-        newEntry->fileNameLength = dirNameLength;
-        newEntry->size = 0; // Directories have size 0
-        newEntry->permissions = permissions;
-        newEntry->firstBlock = freeBlock;
-        newEntry->creationDate = time(NULL);
-        newEntry->modificationDate = newEntry->creationDate;
-        strncpy(newEntry->password, password, sizeof(newEntry->password) - 1);
-
-        char *dirNamePtr = fsMemoryBase + superBlock.fileNameArea.offset + superBlock.fileNameArea.used;
-        memcpy(dirNamePtr, dirName, dirNameLength - 1); // Copy the directory name without null terminator
-        dirNamePtr[dirNameLength - 1] = '\0';           // Ensure null termination
-        superBlock.fileNameArea.used += dirNameLength;
-
-        setBlockUsed(freeBlock);
-
-        // Initialize the new directory table in the allocated block
-        DirectoryTable *newDirTable = (DirectoryTable *)(fsMemoryBase + freeBlock * superBlock.blockSize);
-        memset(newDirTable, 0, sizeof(DirectoryTable));
-
-        return 0; // Success
+        newEntry = &superBlock.rootDirectory.entries[superBlock.rootDirectory.fileCount++];
+        targetDirectory = &superBlock.rootDirectory;
     }
-
     else
     {
         // Find the parent directory
         char *parentDirName = strdup(dirName);
         char *lastSlash = strrchr(parentDirName, '/');
         *lastSlash = '\0'; // Terminate the parent directory name
-        DirectoryTable *parentDir = findDirectory(&superBlock.rootDirectory, parentDirName);
+        targetDirectory = findDirectory(&superBlock.rootDirectory, parentDirName);
 
-        if (parentDir ==  NULL || parentDir == &superBlock.rootDirectory)
+        if (targetDirectory == NULL || targetDirectory==&superBlock.rootDirectory)
         {
             fprintf(stderr, "Parent directory not found: %s\n", parentDirName);
+            free(parentDirName);
             return -1;
         }
         free(parentDirName);
 
-        if (parentDir->fileCount >= MAX_FILES)
+        if (targetDirectory->fileCount >= MAX_FILES)
         {
             fprintf(stderr, "Parent directory full\n");
             return -1;
         }
 
-        DirectoryEntry *newEntry = &parentDir->entries[parentDir->fileCount];
-        parentDir->fileCount++;
-
-        newEntry->entryType = DIRECTORY_TYPE;
-        newEntry->fileNameOffset = superBlock.fileNameArea.used;
-        newEntry->fileNameLength = dirNameLength;
-        newEntry->size = 0; // Directories have size 0
-        newEntry->permissions = permissions;
-        newEntry->firstBlock = freeBlock;
-        newEntry->creationDate = time(NULL);
-        newEntry->modificationDate = newEntry->creationDate;
-        strncpy(newEntry->password, password, sizeof(newEntry->password) - 1);
-
-        char *dirNamePtr = fsMemoryBase + superBlock.fileNameArea.offset + superBlock.fileNameArea.used;
-        memcpy(dirNamePtr, dirName, dirNameLength - 1); // Copy the directory name without null terminator
-        dirNamePtr[dirNameLength - 1] = '\0';           // Ensure null termination
-        superBlock.fileNameArea.used += dirNameLength;
-
-        setBlockUsed(freeBlock);
-
-        // Initialize the new directory table in the allocated block
-        // DirectoryTable *newDirTable = (DirectoryTable *)(fsMemoryBase + freeBlock * superBlock.blockSize);
-        // memset(newDirTable, 0, sizeof(DirectoryTable));
-
-        return 0; // Success
+        newEntry = &targetDirectory->entries[targetDirectory->fileCount++];
     }
+
+    newEntry->entryType = DIRECTORY_TYPE;
+    newEntry->fileNameOffset = superBlock.fileNameArea.used;
+    newEntry->fileNameLength = dirNameLength;
+    newEntry->size = 0; // Directories have size 0
+    newEntry->permissions = permissions;
+    newEntry->firstBlock = freeBlock;
+    newEntry->creationDate = time(NULL);
+    newEntry->modificationDate = newEntry->creationDate;
+    strncpy(newEntry->password, password, sizeof(newEntry->password) - 1);
+    newEntry->password[sizeof(newEntry->password) - 1] = '\0'; // Ensure null-termination
+
+    char *dirNamePtr = fsMemoryBase + superBlock.fileNameArea.offset + superBlock.fileNameArea.used;
+    memcpy(dirNamePtr, dirName, dirNameLength - 1); // Copy the directory name without null terminator
+    dirNamePtr[dirNameLength - 1] = '\0';           // Ensure null termination
+    superBlock.fileNameArea.used += dirNameLength;
+
+    setBlockUsed(freeBlock);
+
+    // Initialize the new directory table in the allocated block
+    DirectoryTable *newDirTable = (DirectoryTable *)(fsMemoryBase + freeBlock * superBlock.blockSize);
+    memset(newDirTable, 0, sizeof(DirectoryTable));
+
+    return 0; // Success
 }
 
 int deleteDirectoryHelper(char *fsBase, const char *dirName, DirectoryTable *dir)
@@ -185,7 +165,7 @@ int deleteDirectoryHelper(char *fsBase, const char *dirName, DirectoryTable *dir
             if(isEmpty == 0)
             {
                 printf("Error while deleting directory: Directory is not empty\n");
-                return -1;
+                return 0;
             }
 
             setBlockFree(entry->firstBlock);
@@ -199,7 +179,7 @@ int deleteDirectoryHelper(char *fsBase, const char *dirName, DirectoryTable *dir
         {
             uint16_t blockNumber = entry->firstBlock;
             DirectoryTable *dirTable = (DirectoryTable *)(fsMemoryBase + blockNumber * superBlock.blockSize);
-            deleteDirectoryHelper(fsBase, dirName, dirTable);
+            return deleteDirectoryHelper(fsBase, dirName, dirTable);
         }
     }
 
@@ -272,10 +252,11 @@ void printDirectoryContents(DirectoryTable *dir, const char *path)
 
         if (entry->entryType == FILE_TYPE)
         {
+            if(entry->firstBlock == 0) continue;
             snprintf(fullPath, sizeof(fullPath), "%s/%s", path, storedFileName);
             printf("File: %s (Block: %u)\n", fullPath, entry->firstBlock);
             uint16_t currentBlock = entry->firstBlock;
-            while (currentBlock != 0xFFFF && currentBlock < MAX_BLOCKS)
+            while (currentBlock != 0xFFFF && currentBlock < MAX_BLOCKS && currentBlock != 0)
             {
                 printf("  Block %u: %s (Next: %u)\n", currentBlock, fullPath, superBlock.fat.fat[currentBlock]);
                 currentBlock = superBlock.fat.fat[currentBlock];
@@ -286,7 +267,7 @@ void printDirectoryContents(DirectoryTable *dir, const char *path)
             snprintf(fullPath, sizeof(fullPath), "%s", storedFileName);
             printf("Directory: %s (Block: %u)\n", fullPath, entry->firstBlock);
             uint16_t blockNumber = entry->firstBlock;
-            while (blockNumber != 0xFFFF && blockNumber < MAX_BLOCKS)
+            while (blockNumber != 0xFFFF && blockNumber < MAX_BLOCKS && blockNumber != 0)
             {
                 DirectoryTable *subDir = (DirectoryTable *)(fsMemoryBase + blockNumber * superBlock.blockSize);
                 printDirectoryContents(subDir, fullPath);

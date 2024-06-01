@@ -39,7 +39,7 @@ void initializeFileSystem(uint16_t blockSize, char *fsBase, int totalFsSize)
 
     // Setup filename area
     superBlock.fileNameArea.offset = sizeof(SuperBlock) + sizeof(FAT) + sizeof(DirectoryTable) + sizeof(FreeBlockBitmap);
-    superBlock.fileNameArea.size = MAX_FILES * sizeof(DirectoryEntry);
+    superBlock.fileNameArea.size = 128 * sizeof(DirectoryEntry);
     superBlock.fileNameArea.used = 0;
 
     // Setup data area
