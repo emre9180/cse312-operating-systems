@@ -30,6 +30,18 @@ void printDirectoryDetails(char *dirName)
         if (entry->entryType == FILE_TYPE)
         {
             printf("  File Name: %s\n", storedFileName);
+            printf("\tFile Size: %u bytes\n", entry->size);
+            printf("\tPermissions: %s%s\n", (entry->permissions & PERMISSION_READ) ? "R" : "-", (entry->permissions & PERMISSION_WRITE) ? "W" : "-");
+            printDate(entry->creationDate, 1);
+            printDate(entry->modificationDate, 0); printf("\n");
+            if(strcmp(entry->password, "none") != 0)
+            {
+                printf("\tPassword Protected: Yes\n");
+            }
+            else
+            {
+                printf("\tPassword Protected: No\n");
+            }
         }
         else
         {
@@ -111,7 +123,15 @@ int createDirectory(char *fsBase, const char *dirName, uint16_t permissions, con
     newEntry->size = 0; // Directories have size 0
     newEntry->permissions = permissions;
     newEntry->firstBlock = freeBlock;
-    newEntry->creationDate = time(NULL);
+
+    time_t currentTime = time(NULL);
+    if (currentTime == (time_t)-1) {
+        newEntry->creationDate = 0; // or some error value
+    } else {
+        // Safely cast to int32_t
+        newEntry->creationDate = (int32_t)currentTime;
+    }
+
     newEntry->modificationDate = newEntry->creationDate;
     strncpy(newEntry->password, password, sizeof(newEntry->password) - 1);
     newEntry->password[sizeof(newEntry->password) - 1] = '\0'; // Ensure null-termination
@@ -301,3 +321,4 @@ void countFilesAndDirectories(DirectoryTable *dir, uint16_t *fileCount, uint16_t
         }
     }
 }
+

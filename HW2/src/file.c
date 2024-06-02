@@ -3,7 +3,6 @@
 #include "../include/file.h"
 #include "../include/utility.h"
 
-
 void printFileDetails(char *directoryName, const char *fileName)
 {
     DirectoryTable *dir = findDirectory(&superBlock.rootDirectory, directoryName);
@@ -69,7 +68,18 @@ int createFile(char *fsBase, char *directoryName, const char *fileName, uint16_t
     newEntry->size = 0;
     newEntry->permissions = permissions;
     newEntry->firstBlock = freeBlock;
-    newEntry->creationDate = time(NULL);
+
+    time_t currentTime = time(NULL);
+    if (currentTime == (time_t)-1)
+    {
+        newEntry->creationDate = 0; // or some error value
+    }
+    else
+    {
+        // Safely cast to int32_t
+        newEntry->creationDate = (int32_t)currentTime;
+    }
+
     newEntry->modificationDate = newEntry->creationDate;
     strcpy(newEntry->password, password);
 
@@ -115,7 +125,6 @@ int deleteFile(const char *filePath)
     }
 
     DirectoryTable *dir = findDirectory(&superBlock.rootDirectory, dirPath);
-    
 
     if (dir == NULL)
     {
@@ -155,7 +164,7 @@ int deleteFile(const char *filePath)
 
 int write(char *directoryName, char *linuxFileName, char *password)
 {
-     // Duplicate the file path to avoid modifying the original
+    // Duplicate the file path to avoid modifying the original
     char *dirPath = strdup(directoryName);
     if (!dirPath)
     {
@@ -185,7 +194,6 @@ int write(char *directoryName, char *linuxFileName, char *password)
     // Split the path into directory and file name
     *fileName = '\0'; // Terminate the directory path
     fileName++;       // Move to the file name part
-
 
     // Get Linux file permissions
     struct stat fileStat;
@@ -241,10 +249,12 @@ int write(char *directoryName, char *linuxFileName, char *password)
 
     // Find the directory and file entry
     DirectoryTable *dir;
-    if(count!=1)  dir = findDirectory(&superBlock.rootDirectory, dirPath);
-    else dir = &superBlock.rootDirectory;
+    if (count != 1)
+        dir = findDirectory(&superBlock.rootDirectory, dirPath);
+    else
+        dir = &superBlock.rootDirectory;
 
-    if(count!=1 && dir == &superBlock.rootDirectory)
+    if (count != 1 && dir == &superBlock.rootDirectory)
     {
         fprintf(stderr, "Invalid directory path: %s\n", dirPath);
         free(linuxFileContent);
@@ -329,7 +339,6 @@ int write(char *directoryName, char *linuxFileName, char *password)
     }
 
     newEntry->size = linuxFileSize;
-    newEntry->modificationDate = time(NULL);
 
     free(linuxFileContent);
     free(dirPath);
@@ -465,7 +474,6 @@ DirectoryEntry *findFileInDirectory(DirectoryTable *dir, const char *fileName)
     return NULL;
 }
 
-
 int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove, const char *password)
 {
     // Duplicate the file path to avoid modifying the original
@@ -497,7 +505,6 @@ int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove, co
     }
 
     DirectoryTable *dir = findDirectory(&superBlock.rootDirectory, dirPath);
-    
 
     if (dir == NULL)
     {
@@ -517,6 +524,17 @@ int chmodFile(const char *filePath, uint16_t newPermissions, int addOrRemove, co
                 fprintf(stderr, "You did not provide correct password for file: %s\n", fileName);
                 free(dirPath);
                 return -1;
+            }
+
+            time_t currentTime = time(NULL);
+            if (currentTime == (time_t)-1)
+            {
+                entry->modificationDate = 0; // or some error value
+            }
+            else
+            {
+                // Safely cast to int32_t
+                entry->modificationDate = (int32_t)currentTime;
             }
 
             // Update the file permissions based on addOrRemove flag
@@ -595,12 +613,21 @@ void addPassword(const char *filePath, const char *password, const char *filePas
 
             // Update the file password
             strncpy(entry->password, password, sizeof(entry->password) - 1);
-            entry->modificationDate = time(NULL); // Update the modification date
+
+            time_t currentTime = time(NULL);
+            if (currentTime == (time_t)-1)
+            {
+                entry->modificationDate = 0; // or some error value
+            }
+            else
+            {
+                // Safely cast to int32_t
+                entry->modificationDate = (int32_t)currentTime;
+            }
             free(dirPath);
-            return;                               // Success
+            return; // Success
         }
     }
     printf("File not found: %s\n", fileName);
-        free(dirPath);
-
+    free(dirPath);
 }

@@ -24,4 +24,11 @@ void setBlockUsed(uint16_t blockNumber);
  */
 uint16_t findFreeBlock();
 
+/**
+ * Prints Date of the file
+ * @param date The date
+ * @param flag 0 for creation, 1 for modification date
+*/
+void printDate(uint32_t date, int flag);
+
 #endif // UTILITY_H

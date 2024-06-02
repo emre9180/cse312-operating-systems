@@ -33,3 +33,18 @@ uint16_t findFreeBlock()
     }
     return (uint16_t)-1; // No free block found
 }
+
+void printDate(uint32_t date, int flag)
+{
+    time_t creationTime = (time_t)date;
+    struct tm *tm_info = localtime(&creationTime);
+    char buffer[26];
+
+    if (tm_info != NULL) {
+        strftime(buffer, 26, "%Y-%m-%d %H:%M:%S", tm_info);
+        if(flag) printf("\tCreation Date: %s\n", buffer);
+        else printf("\tModification Date: %s", buffer);
+    } else {
+        printf("\tInvalid creation date\n");
+    }
+}

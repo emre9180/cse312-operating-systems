@@ -82,16 +82,20 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Invalid block size. Allowed block size are only 512 Bytes and 1024 Bytes. Give the input as bytes, not KB or MB\n");
         }
         initializeFileSystem(blockSize, fsMemory, totalFsSize);
-        printf("File system created and saved to %s\n", words[2]);
         printf("Total size of superblock: %ld bytes\n", sizeof(SuperBlock));
         printf("Total size of Root Directory Table: %ld bytes\n", sizeof(DirectoryTable));
         printf("Total size of Free Block Bitmap: %ld bytes\n", sizeof(FreeBlockBitmap));
         printf("Total size of FAT: %ld bytes\n", sizeof(FAT));
-        printf("Total size of Data Area (File Name Area + Data Blocks): %ld bytes (%ld MB)\n", (long int)superBlock.fileNameArea.size + superBlock.dataArea.size, ((long int)superBlock.fileNameArea.size + superBlock.dataArea.size)/(1024*1024));
-        long int total_size = (long int)(superBlock.fileNameArea.size + superBlock.dataArea.size)+ sizeof(SuperBlock) + sizeof(DirectoryTable) + sizeof(FreeBlockBitmap) + sizeof(FAT);
-        printf("Total size of File System: %ld bytes\n", total_size);
+
+        long long int totalDataAreaSize = (long long int)superBlock.fileNameArea.size + superBlock.dataArea.size;
+        printf("Total size of Data Area (File Name Area + Data Blocks): %lld bytes (%lld MB)\n", totalDataAreaSize, totalDataAreaSize / (1024 * 1024));
+
+        long long int totalFileSystemSize = totalDataAreaSize + sizeof(SuperBlock) + sizeof(DirectoryTable) + sizeof(FreeBlockBitmap) + sizeof(FAT);
+        printf("Total size of File System: %lld bytes\n", totalFileSystemSize);
+
         printf("Available commands are: dir, mkdir, rmdir, dumpe2fs, write, read, del, chmod, addpw\n");
         printf("\n");
+
         saveFileSystem(words[2]);
         free(fsMemory);
         return 0;
